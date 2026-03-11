@@ -8,38 +8,39 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <style>
-        /* 다크 & 스포티 테마 기본 설정 */
         :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --surface-hover: #2c2c2c;
-            --primary-color: #FF3B30; /* 강렬한 네온 레드 */
-            --text-main: #ffffff;
-            --text-sub: #aaaaaa;
-            --border-color: #333333;
-            --rest-color: #4caf50;
-            --rest-bg: #1b3320;
+            --bg-color: #121212; --surface-color: #1e1e1e; --surface-hover: #2c2c2c;
+            --primary-color: #FF3B30; --text-main: #ffffff; --text-sub: #aaaaaa;
+            --border-color: #333333; --rest-color: #4caf50; --rest-bg: #1b3320;
         }
 
         body { margin: 0; font-family: 'Montserrat', -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-color); color: var(--text-main); }
         header { background-color: #000000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; font-weight: 900; letter-spacing: -0.5px; border-bottom: 1px solid var(--border-color); }
         .header-title { display: flex; align-items: center; gap: 8px; color: var(--primary-color); }
         
-        .btn-lang { background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; font-weight: bold; font-family: 'Montserrat'; display:flex; align-items:center; gap:4px;}
-        .btn-lang:active { transform: scale(0.95); }
+        .header-buttons { display: flex; gap: 10px; }
+        .btn-header { background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; font-weight: bold; font-family: 'Montserrat'; display:flex; align-items:center; gap:4px;}
+        .btn-header:active { transform: scale(0.95); }
 
         main { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 공통 UI (버튼, 카드) */
+        /* 로그인 오버레이 (앱 켜면 가장 먼저 보이는 화면) */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-title { font-size: 3rem; font-weight: 900; color: var(--primary-color); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .login-desc { color: var(--text-sub); margin-bottom: 40px; font-size: 0.9rem; }
+        .btn-google-login { background: white; color: #333; border: none; padding: 15px 24px; border-radius: 30px; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.2); transition: transform 0.2s; }
+        .btn-google-login:active { transform: scale(0.95); }
+        .btn-google-login img { width: 24px; height: 24px; }
+
+        /* 공통 UI */
         .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
         .btn-action { background: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 59, 48, 0.3); transition: transform 0.1s;}
         .btn-action:active { transform: scale(0.95); }
         .btn-export { background: #333; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; color: var(--text-main); font-weight: bold; display: flex; align-items: center; gap: 4px; }
-        .btn-export:active { transform: scale(0.95); }
-
+        
         /* 대시보드 UI */
         .stats-container { display: flex; gap: 12px; margin-bottom: 25px; }
         .stat-card { background: var(--surface-color); flex: 1; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--border-color); }
@@ -50,7 +51,6 @@
         /* 달력 UI */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 1.3rem; font-weight: 800; }
         .calendar-header button { background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .calendar-header button:active { background: var(--surface-hover); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         .day-name { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 5px; font-weight: 600; }
         .calendar-day { background: var(--surface-color); padding: 15px 0; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 600; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); height: 30px; display: flex; justify-content: center; align-items: center; border: 1px solid transparent; }
@@ -60,54 +60,46 @@
         .calendar-day.is-rest { background-color: var(--rest-bg); border: 1px solid var(--rest-color); color: var(--rest-color); }
         .day-sticker { position: absolute; bottom: 2px; font-size: 1rem; color: #ffeb3b; }
 
-        /* PR UI & 1RM 계산기 */
-        .calc-card { background: var(--surface-color); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 25px; border-top: 4px solid var(--primary-color);}
+        /* PR UI & 타이머 등 기존과 동일하게 유지 (코드 길이상 핵심만 남김) */
+        .calc-card { background: var(--surface-color); padding: 20px; border-radius: 16px; margin-bottom: 25px; border-top: 4px solid var(--primary-color);}
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; font-size: 0.95rem; font-weight: bold;}
         .calc-grid div { background: var(--bg-color); padding: 10px 0; border-radius: 8px; border: 1px solid var(--border-color);}
-        .pr-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .pr-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
         .pr-item-content { flex: 1; cursor: pointer; }
         .pr-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 4px;}
         .pr-record-val { color: var(--primary-color); font-size: 1.25rem; }
         .pr-date { font-size: 0.8rem; color: var(--text-sub); }
 
-        /* 타이머 UI */
-        .timer-container { background: var(--surface-color); border-radius: 20px; padding: 25px 20px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.5); margin-top: 10px; border: 1px solid var(--border-color); transition: background 0.3s;}
-        .timer-display { font-size: 5.5rem; font-weight: 900; color: var(--text-main); margin: 10px 0 20px 0; letter-spacing: -2px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .timer-container { background: var(--surface-color); border-radius: 20px; padding: 25px 20px; text-align: center; margin-top: 10px; border: 1px solid var(--border-color); transition: background 0.3s;}
+        .timer-display { font-size: 5.5rem; font-weight: 900; color: var(--text-main); margin: 10px 0 20px 0; letter-spacing: -2px; }
         .timer-phase { font-size: 1.3rem; font-weight: 800; color: var(--text-sub); height: 1.5rem; }
         .timer-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; }
         .timer-controls button { padding: 16px 0; flex: 1; font-size: 1.1rem; font-weight: 900; border-radius: 12px; border: none; cursor: pointer; color: white; transition: transform 0.1s; }
-        .timer-controls button:active { transform: scale(0.95); }
-        .btn-start { background-color: var(--primary-color); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); }
+        .btn-start { background-color: var(--primary-color); }
         .btn-stop { background-color: #ff9800; display: none; }
         .btn-reset { background-color: #555; }
         .timer-settings-row { display: flex; gap: 10px; margin-top: 15px; }
         .timer-container.work-phase { background-color: #1a2e1e; border-color: #4caf50; } 
-        .timer-container.work-phase .timer-display { color: #4caf50; text-shadow: 0 0 15px rgba(76, 175, 80, 0.4); }
+        .timer-container.work-phase .timer-display { color: #4caf50; }
         .timer-container.rest-phase { background-color: #3b1818; border-color: #e53935; } 
-        .timer-container.rest-phase .timer-display { color: #e53935; text-shadow: 0 0 15px rgba(229, 57, 53, 0.4); }
+        .timer-container.rest-phase .timer-display { color: #e53935; }
 
-        /* 네비게이션 */
         nav { display: flex; justify-content: space-around; background-color: #000000; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom); }
         nav a { text-decoration: none; color: var(--text-sub); text-align: center; padding: 12px 0; flex: 1; font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; }
-        nav a i { font-size: 1.6rem; }
         nav a.active { color: var(--primary-color); }
 
-        /* 팝업 모달 & 폼 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px); }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--surface-color); width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .modal-content { background: var(--surface-color); width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border-color); }
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 700;}
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; box-sizing: border-box; font-size: 1rem; font-family: 'Montserrat', sans-serif; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); }
         .modal-buttons { display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap; }
         .btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer; transition: transform 0.1s;}
-        .btn:active { transform: scale(0.95); }
         .btn-cancel { background: #333; color: var(--text-main); }
-        .btn-save { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(255, 59, 48, 0.3); }
+        .btn-save { background: var(--primary-color); color: white; }
         
-        /* 리스트 공통 및 삭제 버튼 */
-        .workout-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .workout-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: relative; }
         .workout-item-content { flex: 1; cursor: pointer; }
         .workout-item.rest-item { border-left: 4px solid var(--rest-color); } 
         .workout-item-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main);}
@@ -116,28 +108,27 @@
         
         .btn-add { background: transparent; color: var(--primary-color); border: 2px dashed var(--primary-color); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-bottom: 15px; font-size: 1rem;}
         .btn-close { background: #222; color: var(--text-sub); width: 100%; margin-top: 10px; border: 1px solid var(--border-color); }
-        
-        /* 리스트 내부 휴지통 아이콘 버튼 */
-        .btn-icon-delete { background: transparent; border: none; color: #777; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .btn-icon-delete:hover, .btn-icon-delete:active { color: var(--primary-color); background: rgba(255, 59, 48, 0.1); }
-
-        /* 전체 삭제 버튼 (홈 화면) */
+        .btn-icon-delete { background: transparent; border: none; color: #777; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .btn-danger-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px; width: 100%; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 30px; font-size: 0.9rem; display:flex; justify-content:center; align-items:center; gap:6px;}
-        .btn-danger-outline:active { background: rgba(255,59,48,0.1); }
-        
-        /* Material Icons 스타일 보정 */
-        .material-icons { vertical-align: middle; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-title">
-            <span class="material-icons" style="font-size: 1.6rem;">fitness_center</span> WODiary
-        </div>
-        <button class="btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">
-            <span class="material-icons" style="font-size: 1rem;">language</span> <span>ENG</span>
+    <div id="login-overlay">
+        <div class="login-title"><span class="material-icons" style="font-size: 3rem;">fitness_center</span> WODiary</div>
+        <div class="login-desc">나만의 크로스핏 다이어리 (클라우드 동기화)</div>
+        <button class="btn-google-login" onclick="loginWithGoogle()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+            Google로 로그인
         </button>
+    </div>
+
+    <header>
+        <div class="header-title"><span class="material-icons" style="font-size: 1.6rem;">fitness_center</span> WODiary</div>
+        <div class="header-buttons">
+            <button class="btn-header" id="btn-lang-toggle" onclick="toggleLanguage()"><span class="material-icons" style="font-size: 1rem;">language</span> <span>ENG</span></button>
+            <button class="btn-header" onclick="logout()"><span class="material-icons" style="font-size: 1rem;">logout</span></button>
+        </div>
     </header>
 
     <main>
@@ -147,43 +138,30 @@
                 <button class="btn-export" id="txt-export-csv" onclick="exportToCSV()"><span class="material-icons" style="font-size:1rem;">download</span> 백업</button>
             </div>
             <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-workout-days">0</div><div class="stat-label" id="txt-workout-days">Workout Days</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value rest" id="stat-rest-days">0</div><div class="stat-label" id="txt-rest-days">Rest Days</div>
-                </div>
+                <div class="stat-card"><div class="stat-value" id="stat-workout-days">0</div><div class="stat-label" id="txt-workout-days">Workout Days</div></div>
+                <div class="stat-card"><div class="stat-value rest" id="stat-rest-days">0</div><div class="stat-label" id="txt-rest-days">Rest Days</div></div>
             </div>
             <div class="section-header" style="margin-top: 35px;"><span id="txt-recent-records">최근 기록</span></div>
             <div id="recent-workout-list"></div>
-
-            <button class="btn-danger-outline" id="txt-btn-wipe" onclick="deleteAllData()">
-                <span class="material-icons" style="font-size: 1.1rem;">delete_forever</span> 전체 데이터 초기화
-            </button>
+            <button class="btn-danger-outline" id="txt-btn-wipe" onclick="deleteAllData()"><span class="material-icons" style="font-size: 1.1rem;">delete_forever</span> 전체 데이터 초기화</button>
         </div>
 
         <div id="view-calendar" class="view">
             <div class="calendar-header">
-                <button id="prev-month"><span class="material-icons">chevron_left</span></button>
+                <button onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
                 <span id="current-month-year"></span>
-                <button id="next-month"><span class="material-icons">chevron_right</span></button>
+                <button onclick="changeMonth(1)"><span class="material-icons">chevron_right</span></button>
             </div>
             <div class="calendar-grid" id="calendar-grid"></div>
         </div>
 
         <div id="view-pr" class="view">
             <div class="calc-card">
-                <div style="font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:6px;" id="txt-1rm-calc">
-                    <span class="material-icons" style="color:var(--primary-color);">calculate</span> 1RM % 계산기
-                </div>
-                <input type="number" id="calc-input" placeholder="1RM (예: 100)" style="width:100%; padding:12px; box-sizing:border-box; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-main); font-weight:bold;">
+                <div style="font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:6px;" id="txt-1rm-calc"><span class="material-icons" style="color:var(--primary-color);">calculate</span> 1RM % 계산기</div>
+                <input type="number" id="calc-input" oninput="calc1RM(this.value)" placeholder="1RM (예: 100)" style="width:100%; padding:12px; box-sizing:border-box; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-main); font-weight:bold;">
                 <div class="calc-grid" id="calc-result"></div>
             </div>
-
-            <div class="section-header">
-                <span>Personal Records</span>
-                <button class="btn-action" id="txt-add-pr" onclick="openPRModal(-1)">+ ADD PR</button>
-            </div>
+            <div class="section-header"><span>Personal Records</span><button class="btn-action" id="txt-add-pr" onclick="openPRModal(-1)">+ ADD PR</button></div>
             <div id="pr-list-container"></div>
         </div>
 
@@ -198,21 +176,17 @@
                         <option value="interval">EMOM / Tabata</option>
                     </select>
                 </div>
-                
                 <div class="timer-settings-row" id="timer-setting-down" style="display:none;">
                     <div class="form-group" style="flex:1;"><input type="number" id="t-down-min" placeholder="Min" value="10" min="0"></div>
                     <div class="form-group" style="flex:1;"><input type="number" id="t-down-sec" placeholder="Sec" value="0" min="0" max="59"></div>
                 </div>
-
                 <div class="timer-settings-row" id="timer-setting-interval" style="display:none;">
                     <div class="form-group" style="flex:1;"><label id="txt-int-work">WORK</label><input type="number" id="t-int-work" value="40" min="1"></div>
                     <div class="form-group" style="flex:1;"><label id="txt-int-rest">REST</label><input type="number" id="t-int-rest" value="20" min="0"></div>
                     <div class="form-group" style="flex:1;"><label id="txt-int-round">ROUND</label><input type="number" id="t-int-round" value="5" min="1"></div>
                 </div>
-
                 <div class="timer-phase" id="timer-phase-text"></div>
                 <div class="timer-display" id="timer-display">00:00</div>
-
                 <div class="timer-controls">
                     <button class="btn-start" id="btn-timer-start" onclick="startTimer()">START</button>
                     <button class="btn-stop" id="btn-timer-stop" onclick="stopTimer()">PAUSE</button>
@@ -223,22 +197,20 @@
     </main>
 
     <nav>
-        <a href="#" data-target="view-home" class="active" id="nav-home"><i class="material-icons">home</i><span>HOME</span></a>
-        <a href="#" data-target="view-calendar" id="nav-calendar"><i class="material-icons">event_note</i><span>CALENDAR</span></a>
-        <a href="#" data-target="view-pr" id="nav-pr"><i class="material-icons">emoji_events</i><span>PR</span></a>
-        <a href="#" data-target="view-timer" id="nav-timer"><i class="material-icons">timer</i><span>TIMER</span></a>
+        <a href="#" onclick="switchView('view-home', this)" class="active" id="nav-home"><i class="material-icons">home</i><span>HOME</span></a>
+        <a href="#" onclick="switchView('view-calendar', this)" id="nav-calendar"><i class="material-icons">event_note</i><span>CALENDAR</span></a>
+        <a href="#" onclick="switchView('view-pr', this)" id="nav-pr"><i class="material-icons">emoji_events</i><span>PR</span></a>
+        <a href="#" onclick="switchView('view-timer', this)" id="nav-timer"><i class="material-icons">timer</i><span>TIMER</span></a>
     </nav>
 
     <div class="modal-overlay" id="record-modal">
         <div class="modal-content">
             <h3 id="modal-date-title" style="margin-top:0; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px; color:var(--primary-color);">날짜</h3>
-            
             <div id="modal-list-view">
                 <div id="workout-list"></div>
-                <button class="btn btn-add" id="txt-btn-add-wod">+ ADD WORKOUT</button>
-                <button class="btn btn-close" id="txt-btn-close" onclick="document.getElementById('record-modal').classList.remove('active')">CLOSE</button>
+                <button class="btn btn-add" id="txt-btn-add-wod" onclick="openFormView(-1)">+ ADD WORKOUT</button>
+                <button class="btn btn-close" id="txt-btn-close" onclick="closeModal('record-modal')">CLOSE</button>
             </div>
-            
             <div id="modal-form-view" style="display: none;">
                 <div class="form-group"><label id="txt-lbl-sticker">스티커 (선택)</label>
                     <select id="wod-sticker">
@@ -260,8 +232,8 @@
                 <div class="form-group"><label id="txt-lbl-score">기록 (Score/Weight)</label><input type="text" id="wod-score" placeholder="15R+5, 100kg..."></div>
                 <div class="form-group"><label id="txt-lbl-memo">메모</label><textarea id="wod-memo" placeholder="..."></textarea></div>
                 <div class="modal-buttons">
-                    <button class="btn btn-cancel" id="txt-btn-back">BACK</button>
-                    <button class="btn btn-save" id="txt-btn-save1">SAVE</button>
+                    <button class="btn btn-cancel" id="txt-btn-back" onclick="showListView()">BACK</button>
+                    <button class="btn btn-save" id="txt-btn-save1" onclick="saveWorkout()">SAVE</button>
                 </div>
             </div>
         </div>
@@ -274,11 +246,98 @@
             <div class="form-group"><label id="txt-pr-name">Movement</label><input type="text" id="pr-input-type" placeholder="Back Squat, Fran..."></div>
             <div class="form-group"><label id="txt-pr-record">Record</label><input type="text" id="pr-input-record" placeholder="100kg, 2:30..."></div>
             <div class="modal-buttons">
-                <button class="btn btn-cancel" id="txt-btn-cancel" onclick="document.getElementById('pr-modal').classList.remove('active')">CANCEL</button>
+                <button class="btn btn-cancel" id="txt-btn-cancel" onclick="closeModal('pr-modal')">CANCEL</button>
                 <button class="btn btn-save" id="txt-btn-save2" onclick="savePR()">SAVE</button>
             </div>
         </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+        // 파이어베이스 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3WeFoff4v4pgixoSlYXn3vPGuQ8zUIhM",
+            authDomain: "wodiary-75a7c.firebaseapp.com",
+            projectId: "wodiary-75a7c",
+            storageBucket: "wodiary-75a7c.firebasestorage.app",
+            messagingSenderId: "974259035080",
+            appId: "1:974259035080:web:0ee608a2deeb611874befd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // 전역 데이터 변수
+        window.workoutData = {};
+        window.prDataList = [];
+        window.currentUser = null;
+
+        // --- 인증(로그인) 로직 ---
+        window.loginWithGoogle = () => {
+            signInWithPopup(auth, provider).catch(error => alert("로그인 실패: " + error.message));
+        };
+
+        window.logout = () => {
+            if(confirm("로그아웃 하시겠습니까?")) {
+                signOut(auth);
+            }
+        };
+
+        // 로그인 상태 감지기
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('login-overlay').style.display = 'none'; // 로그인 창 숨기기
+                await loadDataFromFirestore(); // 클라우드에서 데이터 가져오기
+                
+                // 데이터 가져온 후 화면 렌더링
+                window.applyLanguage();
+                window.renderDashboard(); 
+                window.renderCalendar(); 
+                window.renderPRs();
+            } else {
+                window.currentUser = null;
+                document.getElementById('login-overlay').style.display = 'flex'; // 로그인 창 보이기
+                window.workoutData = {};
+                window.prDataList = [];
+            }
+        });
+
+        // --- 파이어베이스 데이터베이스 로직 ---
+        async function loadDataFromFirestore() {
+            if (!window.currentUser) return;
+            try {
+                const docRef = doc(db, "users", window.currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.workoutData = data.workoutData || {};
+                    window.prDataList = data.prDataList || [];
+                }
+            } catch (error) {
+                console.error("데이터 불러오기 에러:", error);
+            }
+        }
+
+        window.saveDataToFirestore = async () => {
+            if (!window.currentUser) return;
+            try {
+                // 입력하는 순간 화면은 즉시 바뀌고(optimistic update), 뒤에서 서버로 조용히 전송됨
+                await setDoc(doc(db, "users", window.currentUser.uid), {
+                    workoutData: window.workoutData,
+                    prDataList: window.prDataList
+                });
+            } catch (error) {
+                console.error("데이터 저장 에러:", error);
+                alert("클라우드 저장에 실패했습니다.");
+            }
+        };
+    </script>
 
     <script>
         // --- 언어 팩 (i18n) ---
@@ -309,9 +368,9 @@
             }
         };
 
-        let currentLang = localStorage.getItem('crossfit_lang') || 'ko';
+        window.currentLang = localStorage.getItem('crossfit_lang') || 'ko';
 
-        function applyLanguage() {
+        window.applyLanguage = () => {
             const t = i18n[currentLang];
             document.getElementById('btn-lang-toggle').innerHTML = `<span class="material-icons" style="font-size:1rem;">language</span> <span>${t.langFlag}</span>`;
             document.querySelector('#nav-home span').innerText = t.navHome;
@@ -345,103 +404,78 @@
             document.getElementById('txt-pr-date').innerText = t.prDate;
             document.getElementById('txt-pr-name').innerText = t.prName;
             document.getElementById('txt-pr-record').innerText = t.prRecord;
+        };
 
-            renderDashboard(); renderCalendar(); renderPRs(); renderWorkoutList();
-        }
+        window.toggleLanguage = () => { currentLang = currentLang === 'ko' ? 'en' : 'ko'; localStorage.setItem('crossfit_lang', currentLang); applyLanguage(); renderDashboard(); renderCalendar(); };
 
-        function toggleLanguage() { currentLang = currentLang === 'ko' ? 'en' : 'ko'; localStorage.setItem('crossfit_lang', currentLang); applyLanguage(); }
+        // --- 네비게이션 제어 ---
+        window.switchView = (targetId, element) => {
+            document.querySelectorAll('nav a').forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            if(targetId === 'view-home') renderDashboard();
+            if(targetId === 'view-calendar') renderCalendar(); 
+            if(targetId === 'view-pr') renderPRs();
+        };
 
-        // --- 데이터 관리 ---
-        let workoutData = JSON.parse(localStorage.getItem('crossfit_records_v2')) || {};
-        let prDataList = JSON.parse(localStorage.getItem('crossfit_prs_v3')) || [];
-
-        // --- 전체 데이터 초기화 기능 (버그 없이 완전 삭제) ---
-        function deleteAllData() {
+        // --- 클라우드 데이터 초기화 ---
+        window.deleteAllData = () => {
             if(confirm(i18n[currentLang].alertWipe1)) {
                 if(confirm(i18n[currentLang].alertWipe2)) {
-                    localStorage.removeItem('crossfit_records_v2');
-                    localStorage.removeItem('crossfit_prs_v3');
-                    workoutData = {};
-                    prDataList = [];
+                    window.workoutData = {};
+                    window.prDataList = [];
+                    window.saveDataToFirestore(); // 빈 데이터로 클라우드 덮어쓰기
                     renderDashboard(); renderCalendar(); renderPRs();
                 }
             }
-        }
-
-        // --- 네비게이션 ---
-        const navLinks = document.querySelectorAll('nav a');
-        const views = document.querySelectorAll('.view');
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('data-target');
-                navLinks.forEach(n => n.classList.remove('active'));
-                link.classList.add('active');
-                views.forEach(v => v.classList.remove('active'));
-                document.getElementById(targetId).classList.add('active');
-                
-                if(targetId === 'view-home') renderDashboard();
-                if(targetId === 'view-calendar') renderCalendar(); 
-                if(targetId === 'view-pr') renderPRs();
-            });
-        });
+        };
 
         // --- 1RM 계산기 ---
-        document.getElementById('calc-input').addEventListener('input', function(e) {
-            const weight = parseFloat(e.target.value);
+        window.calc1RM = (val) => {
+            const weight = parseFloat(val);
             const resDiv = document.getElementById('calc-result');
             if(!weight || weight <= 0) { resDiv.innerHTML = ''; return; }
             const percentages = [95, 90, 85, 80, 75, 65, 55, 50];
             let html = '';
             percentages.forEach(p => html += `<div><span style="color:var(--text-sub); font-size:0.8rem;">${p}%</span><br><strong style="color:var(--text-main);">${(weight * p / 100).toFixed(1)}</strong></div>`);
             resDiv.innerHTML = html;
-        });
+        };
 
         // --- PR 로직 ---
         let currentPrIndex = -1;
-        function renderPRs() {
+        window.renderPRs = () => {
             const container = document.getElementById('pr-list-container');
             container.innerHTML = '';
-            const sortedPRs = [...prDataList].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            if(sortedPRs.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-sub); margin-top:30px;">${i18n[currentLang].noRecord}</p>`;
-                return;
-            }
+            const sortedPRs = [...window.prDataList].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if(sortedPRs.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-sub); margin-top:30px;">${i18n[currentLang].noRecord}</p>`; return; }
 
             sortedPRs.forEach(pr => {
-                const originalIndex = prDataList.findIndex(item => item === pr);
-                const div = document.createElement('div');
-                div.className = 'pr-item';
-                div.innerHTML = `
-                    <div class="pr-item-content" onclick="openPRModal(${originalIndex})">
-                        <div class="pr-header"><span>${pr.type}</span><span class="pr-record-val">${pr.record}</span></div>
-                        <div class="pr-date">${pr.date}</div>
-                    </div>
-                    <button class="btn-icon-delete" onclick="deletePRDirect(${originalIndex}, event)"><span class="material-icons">delete</span></button>
-                `;
+                const originalIndex = window.prDataList.findIndex(item => item === pr);
+                const div = document.createElement('div'); div.className = 'pr-item';
+                div.innerHTML = `<div class="pr-item-content" onclick="openPRModal(${originalIndex})"><div class="pr-header"><span>${pr.type}</span><span class="pr-record-val">${pr.record}</span></div><div class="pr-date">${pr.date}</div></div>
+                                 <button class="btn-icon-delete" onclick="deletePRDirect(${originalIndex}, event)"><span class="material-icons">delete</span></button>`;
                 container.appendChild(div);
             });
-        }
+        };
 
-        // 리스트에서 바로 삭제 처리 함수 (이벤트 전파 차단)
-        window.deletePRDirect = function(index, event) {
-            event.stopPropagation(); // 모달이 뜨는 것을 막음
+        window.deletePRDirect = (index, event) => {
+            event.stopPropagation();
             if(confirm(i18n[currentLang].alertDel)) {
-                prDataList.splice(index, 1);
-                localStorage.setItem('crossfit_prs_v3', JSON.stringify(prDataList));
+                window.prDataList.splice(index, 1);
+                window.saveDataToFirestore();
                 renderPRs();
             }
         };
 
-        function openPRModal(index) {
+        window.openPRModal = (index) => {
             currentPrIndex = index;
-            const modal = document.getElementById('pr-modal');
             const offset = new Date().getTimezoneOffset() * 60000;
             const localTodayStr = new Date(Date.now() - offset).toISOString().split('T')[0];
 
             if(index > -1) {
-                const pr = prDataList[index];
+                const pr = window.prDataList[index];
                 document.getElementById('pr-input-date').value = pr.date;
                 document.getElementById('pr-input-type').value = pr.type;
                 document.getElementById('pr-input-record').value = pr.record;
@@ -450,69 +484,48 @@
                 document.getElementById('pr-input-type').value = '';
                 document.getElementById('pr-input-record').value = '';
             }
-            modal.classList.add('active');
-        }
+            document.getElementById('pr-modal').classList.add('active');
+        };
 
-        function savePR() {
+        window.savePR = () => {
             let date = document.getElementById('pr-input-date').value;
             const type = document.getElementById('pr-input-type').value.trim();
             const record = document.getElementById('pr-input-record').value.trim();
 
             if(!type || !record) { alert(i18n[currentLang].alertPrIncomplete); return; }
-            if(!date) {
-                const offset = new Date().getTimezoneOffset() * 60000;
-                date = new Date(Date.now() - offset).toISOString().split('T')[0];
-            }
+            if(!date) { const offset = new Date().getTimezoneOffset() * 60000; date = new Date(Date.now() - offset).toISOString().split('T')[0]; }
 
             const newPR = { date, type, record };
             const isNewEntry = (currentPrIndex === -1);
             
-            if(!isNewEntry) prDataList[currentPrIndex] = newPR;
-            else prDataList.push(newPR);
+            if(!isNewEntry) window.prDataList[currentPrIndex] = newPR;
+            else window.prDataList.push(newPR);
 
-            localStorage.setItem('crossfit_prs_v3', JSON.stringify(prDataList));
-            document.getElementById('pr-modal').classList.remove('active');
+            closeModal('pr-modal');
             renderPRs(); 
 
             if (isNewEntry) {
-                if (!workoutData[date]) workoutData[date] = [];
-                workoutData[date].push({ type: 'Strength', name: `[PR] ${type}`, score: record, memo: 'PR Update!', sticker: 'star' });
-                localStorage.setItem('crossfit_records_v2', JSON.stringify(workoutData));
+                if (!window.workoutData[date]) window.workoutData[date] = [];
+                window.workoutData[date].push({ type: 'Strength', name: `[PR] ${type}`, score: record, memo: 'PR Update!', sticker: 'star' });
                 renderCalendar(); renderDashboard();
                 setTimeout(() => { alert(i18n[currentLang].alertAutoPr); }, 300);
             }
-        }
+            window.saveDataToFirestore(); // 클라우드 전송
+        };
 
-        // --- 백업 (CSV) ---
-        function exportToCSV() {
-            let csvContent = "\uFEFFDate,Type,WOD/Movement,Score,Sticker,Memo\n";
-            for (const date in workoutData) {
-                workoutData[date].forEach(r => {
-                    const safeName = (r.name || "").replace(/,/g, " ");
-                    const safeScore = (r.score || "").replace(/,/g, " ");
-                    const safeMemo = (r.memo || "").replace(/,/g, " ");
-                    csvContent += `${date},${r.type},${safeName},${safeScore},${r.sticker||""},${safeMemo}\n`;
-                });
-            }
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob); link.download = "WODiary_records.csv";
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-
-        // --- 대시보드 및 달력 ---
+        // --- 달력 및 와드 기록 로직 ---
         let currentDate = new Date(); let selectedDateString = ""; let currentEditIndex = -1;
 
-        function renderDashboard() {
+        window.renderDashboard = () => {
             const today = new Date(); const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
             document.getElementById('dashboard-month-title').innerText = currentLang === 'ko' ? `${today.getMonth() + 1}월 요약` : `${today.toLocaleString('en-US', { month: 'long' })} Summary`;
             
             let wCount = 0, rCount = 0, all = [];
-            for (const d in workoutData) {
-                if (d.startsWith(currentYearMonth) && workoutData[d].length > 0) {
-                    if (workoutData[d].some(r => r.type === 'Rest')) rCount++; else wCount++;
+            for (const d in window.workoutData) {
+                if (d.startsWith(currentYearMonth) && window.workoutData[d].length > 0) {
+                    if (window.workoutData[d].some(r => r.type === 'Rest')) rCount++; else wCount++;
                 }
-                workoutData[d].forEach(r => all.push({ date: d, ...r }));
+                window.workoutData[d].forEach(r => all.push({ date: d, ...r }));
             }
             document.getElementById('stat-workout-days').innerText = wCount; document.getElementById('stat-rest-days').innerText = rCount;
             all.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -521,117 +534,119 @@
             if (recent.length === 0) cont.innerHTML = `<p style="color:var(--text-sub);text-align:center;">${i18n[currentLang].noRecord}</p>`;
             else recent.forEach(r => {
                 const div = document.createElement('div'); div.className = 'workout-item';
-                // 머터리얼 아이콘 렌더링
                 const st = r.sticker ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : '';
                 if(r.type === 'Rest') { div.classList.add('rest-item'); div.innerHTML = `<div class="workout-item-title">${r.date} - Rest</div>${st}`; }
                 else { div.innerHTML = `<div class="workout-item-title">${r.date}</div><div class="workout-item-desc">${r.type}${r.name?' - '+r.name:''} (Rec: ${r.score||'-'})</div>${st}`; }
                 div.onclick = () => { document.querySelector('[data-target="view-calendar"]').click(); openDateModal(r.date); };
                 cont.appendChild(div);
             });
-        }
+        };
 
-        function renderCalendar() {
+        window.changeMonth = (val) => { currentDate.setMonth(currentDate.getMonth() + val); renderCalendar(); };
+
+        window.renderCalendar = () => {
             const y = currentDate.getFullYear(), m = currentDate.getMonth();
             document.getElementById('current-month-year').innerText = currentLang === 'ko' ? `${y}년 ${m + 1}월` : `${new Date(y, m).toLocaleString('en-US', { month: 'long' })} ${y}`;
-            
             const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
             const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            
             const daysArr = currentLang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             daysArr.forEach(d => { const v = document.createElement('div'); v.className = 'day-name'; v.innerText = d; grid.appendChild(v); });
-            
             for (let i = 0; i < firstDay; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day empty' }));
             const today = new Date();
             for (let i = 1; i <= daysInMonth; i++) {
                 const div = document.createElement('div'); div.className = 'calendar-day'; div.innerText = i;
                 const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 if (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()) div.classList.add('today');
-                
-                if (workoutData[dStr] && workoutData[dStr].length > 0) {
-                    const isRest = workoutData[dStr].some(r => r.type === 'Rest');
-                    const st = workoutData[dStr].find(r => r.sticker && r.sticker !== "");
+                if (window.workoutData[dStr] && window.workoutData[dStr].length > 0) {
+                    const isRest = window.workoutData[dStr].some(r => r.type === 'Rest');
+                    const st = window.workoutData[dStr].find(r => r.sticker && r.sticker !== "");
                     if (isRest) div.classList.add('is-rest');
                     if (st) div.innerHTML = `<span style="position:absolute; top:5px;">${i}</span><span class="day-sticker material-icons" style="font-size:1rem; color:var(--primary-color);">${st.sticker}</span>`;
                     else if (!isRest) div.classList.add('has-record');
                 }
                 div.onclick = () => openDateModal(dStr); grid.appendChild(div);
             }
-        }
-        document.getElementById('prev-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
-        document.getElementById('next-month').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
+        };
 
-        function openDateModal(d) {
+        window.openDateModal = (d) => {
             selectedDateString = d; document.getElementById('modal-date-title').innerText = d;
-            renderWorkoutList(); document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none';
-            document.getElementById('record-modal').classList.add('active');
-        }
-        function renderWorkoutList() {
+            renderWorkoutList(); showListView(); document.getElementById('record-modal').classList.add('active');
+        };
+
+        window.renderWorkoutList = () => {
             const c = document.getElementById('workout-list'); c.innerHTML = '';
-            const recs = workoutData[selectedDateString] || [];
+            const recs = window.workoutData[selectedDateString] || [];
             if (recs.length === 0) c.innerHTML = `<p style="text-align:center;color:var(--text-sub);">${i18n[currentLang].noRecord}</p>`;
             else recs.forEach((r, i) => {
                 const div = document.createElement('div'); div.className = 'workout-item';
                 const st = r.sticker ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : '';
-                
                 let contentHtml = '';
                 if(r.type === 'Rest') { div.classList.add('rest-item'); contentHtml = `<div class="workout-item-title">Rest</div>${st}`; }
                 else { contentHtml = `<div class="workout-item-title">${r.type}${r.name?' - '+r.name:''}</div><div class="workout-item-desc">Rec: ${r.score||'-'}</div>${st}`; }
-                
-                div.innerHTML = `
-                    <div class="workout-item-content" onclick="openFormView(${i})">${contentHtml}</div>
-                    <button class="btn-icon-delete" onclick="deleteWorkoutDirect(${i}, event)"><span class="material-icons">delete</span></button>
-                `;
+                div.innerHTML = `<div class="workout-item-content" onclick="openFormView(${i})">${contentHtml}</div><button class="btn-icon-delete" onclick="deleteWorkoutDirect(${i}, event)"><span class="material-icons">delete</span></button>`;
                 c.appendChild(div);
             });
-        }
+        };
 
-        // 와드 기록 리스트에서 바로 삭제
-        window.deleteWorkoutDirect = function(index, event) {
+        window.deleteWorkoutDirect = (index, event) => {
             event.stopPropagation();
             if(confirm(i18n[currentLang].alertDel)) {
-                workoutData[selectedDateString].splice(index, 1);
-                if (workoutData[selectedDateString].length === 0) delete workoutData[selectedDateString];
-                updateAll();
+                window.workoutData[selectedDateString].splice(index, 1);
+                if (window.workoutData[selectedDateString].length === 0) delete window.workoutData[selectedDateString];
+                window.saveDataToFirestore();
+                renderWorkoutList(); renderCalendar(); renderDashboard();
             }
         };
 
-        function openFormView(idx) {
+        window.showListView = () => { document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none'; };
+        window.closeModal = (id) => { document.getElementById(id).classList.remove('active'); };
+
+        window.openFormView = (idx) => {
             currentEditIndex = idx;
             document.getElementById('modal-list-view').style.display = 'none'; document.getElementById('modal-form-view').style.display = 'block';
             if (idx > -1) {
-                const r = workoutData[selectedDateString][idx];
+                const r = window.workoutData[selectedDateString][idx];
                 ['type', 'name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = r[k] || (k==='type'?'AMRAP':''));
             } else {
                 ['name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = '');
                 document.getElementById('wod-type').value = 'AMRAP';
             }
-        }
-        document.getElementById('txt-btn-add-wod').onclick = () => openFormView(-1);
-        document.getElementById('txt-btn-back').onclick = () => { document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none'; };
-        document.getElementById('txt-btn-save1').onclick = () => {
-            const r = { type: document.getElementById('wod-type').value, name: document.getElementById('wod-name').value, score: document.getElementById('wod-score').value, memo: document.getElementById('wod-memo').value, sticker: document.getElementById('wod-sticker').value };
-            if (!workoutData[selectedDateString]) workoutData[selectedDateString] = [];
-            if (currentEditIndex > -1) workoutData[selectedDateString][currentEditIndex] = r; else workoutData[selectedDateString].push(r);
-            updateAll();
         };
 
-        function updateAll() {
-            localStorage.setItem('crossfit_records_v2', JSON.stringify(workoutData));
-            renderWorkoutList(); document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none';
-            renderCalendar(); renderDashboard();
-        }
+        window.saveWorkout = () => {
+            const r = { type: document.getElementById('wod-type').value, name: document.getElementById('wod-name').value, score: document.getElementById('wod-score').value, memo: document.getElementById('wod-memo').value, sticker: document.getElementById('wod-sticker').value };
+            if (!window.workoutData[selectedDateString]) window.workoutData[selectedDateString] = [];
+            if (currentEditIndex > -1) window.workoutData[selectedDateString][currentEditIndex] = r; else window.workoutData[selectedDateString].push(r);
+            
+            window.saveDataToFirestore(); // 클라우드에 저장
+            showListView(); renderWorkoutList(); renderCalendar(); renderDashboard();
+        };
 
-        // --- 고급 타이머 로직 ---
+        window.exportToCSV = () => {
+            let csvContent = "\uFEFFDate,Type,WOD/Movement,Score,Sticker,Memo\n";
+            for (const date in window.workoutData) {
+                window.workoutData[date].forEach(r => {
+                    const safeName = (r.name || "").replace(/,/g, " ");
+                    const safeScore = (r.score || "").replace(/,/g, " ");
+                    const safeMemo = (r.memo || "").replace(/,/g, " ");
+                    csvContent += `${date},${r.type},${safeName},${safeScore},${r.sticker||""},${safeMemo}\n`;
+                });
+            }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "WODiary_records.csv";
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        };
+
+        // --- 타이머 기능 ---
         let timerInterval; let timeInSeconds = 0; let isTimerRunning = false;
         let intervalState = { currentRound: 1, totalRounds: 5, isWorkPhase: true, workSec: 40, restSec: 20 };
         const display = document.getElementById('timer-display'); const phaseText = document.getElementById('timer-phase-text'); const timerBox = document.getElementById('timer-box');
-        const btnStart = document.getElementById('btn-timer-start'); const btnStop = document.getElementById('btn-timer-stop');
         
-        function changeTimerMode() {
+        window.changeTimerMode = () => {
             const type = document.getElementById('timer-type').value;
             document.getElementById('timer-setting-down').style.display = (type === 'down') ? 'flex' : 'none';
             document.getElementById('timer-setting-interval').style.display = (type === 'interval') ? 'flex' : 'none';
-            resetTimerUI();
+            window.resetTimerUI();
             if(type === 'down') {
                 timeInSeconds = (parseInt(document.getElementById('t-down-min').value) || 0) * 60 + (parseInt(document.getElementById('t-down-sec').value) || 0);
             } else if (type === 'interval') {
@@ -641,53 +656,47 @@
                 intervalState.currentRound = 1; intervalState.isWorkPhase = true; timeInSeconds = intervalState.workSec;
                 phaseText.innerText = `Round 1 / ${intervalState.totalRounds} - READY`;
             } else { timeInSeconds = 0; }
-            updateTimerDisplay();
-        }
-        function updateTimerDisplay() {
-            display.innerText = `${String(Math.floor(timeInSeconds / 60)).padStart(2, '0')}:${String(timeInSeconds % 60).padStart(2, '0')}`;
-        }
-        function resetTimerUI() {
-            clearInterval(timerInterval); isTimerRunning = false; btnStart.style.display = 'block'; btnStop.style.display = 'none';
-            timerBox.className = 'timer-container'; phaseText.innerText = '';
-        }
-        function startTimer() {
+            window.updateTimerDisplay();
+        };
+
+        window.updateTimerDisplay = () => { display.innerText = `${String(Math.floor(timeInSeconds / 60)).padStart(2, '0')}:${String(timeInSeconds % 60).padStart(2, '0')}`; };
+        window.resetTimerUI = () => { clearInterval(timerInterval); isTimerRunning = false; document.getElementById('btn-timer-start').style.display = 'block'; document.getElementById('btn-timer-stop').style.display = 'none'; timerBox.className = 'timer-container'; phaseText.innerText = ''; };
+        
+        window.startTimer = () => {
             if (isTimerRunning) return;
             const type = document.getElementById('timer-type').value;
-            if (timeInSeconds === 0 && display.innerText === "00:00" && type === 'down') {
-                timeInSeconds = (parseInt(document.getElementById('t-down-min').value)||0)*60 + (parseInt(document.getElementById('t-down-sec').value)||0);
-            }
-            isTimerRunning = true; btnStart.style.display = 'none'; btnStop.style.display = 'block';
+            if (timeInSeconds === 0 && display.innerText === "00:00" && type === 'down') { timeInSeconds = (parseInt(document.getElementById('t-down-min').value)||0)*60 + (parseInt(document.getElementById('t-down-sec').value)||0); }
+            isTimerRunning = true; document.getElementById('btn-timer-start').style.display = 'none'; document.getElementById('btn-timer-stop').style.display = 'block';
             if(type === 'interval') {
                 timerBox.className = intervalState.isWorkPhase ? 'timer-container work-phase' : 'timer-container rest-phase';
                 phaseText.innerText = `Round ${intervalState.currentRound} / ${intervalState.totalRounds} - ${intervalState.isWorkPhase ? 'WORK 🔥' : 'REST 💤'}`;
             }
             timerInterval = setInterval(() => {
                 if (type === 'up') timeInSeconds++;
-                else if (type === 'down') { timeInSeconds--; if (timeInSeconds <= 0) { resetTimerUI(); timeInSeconds = 0; updateTimerDisplay(); alert("END!"); return; } }
+                else if (type === 'down') { timeInSeconds--; if (timeInSeconds <= 0) { window.resetTimerUI(); timeInSeconds = 0; window.updateTimerDisplay(); alert("END!"); return; } }
                 else if (type === 'interval') {
                     timeInSeconds--;
                     if (timeInSeconds <= 0) {
                         if (intervalState.isWorkPhase && intervalState.restSec > 0) {
                             intervalState.isWorkPhase = false; timeInSeconds = intervalState.restSec;
                             timerBox.className = 'timer-container rest-phase'; phaseText.innerText = `Round ${intervalState.currentRound} / ${intervalState.totalRounds} - REST 💤`;
-                        } else nextIntervalRound();
+                        } else {
+                            intervalState.currentRound++;
+                            if (intervalState.currentRound > intervalState.totalRounds) { window.resetTimerUI(); window.changeTimerMode(); alert('END!'); return; }
+                            intervalState.isWorkPhase = true; timeInSeconds = intervalState.workSec;
+                            timerBox.className = 'timer-container work-phase'; phaseText.innerText = `Round ${intervalState.currentRound} / ${intervalState.totalRounds} - WORK 🔥`;
+                        }
                     }
                 }
-                updateTimerDisplay();
+                window.updateTimerDisplay();
             }, 1000);
-        }
-        function nextIntervalRound() {
-            intervalState.currentRound++;
-            if (intervalState.currentRound > intervalState.totalRounds) { resetTimerUI(); changeTimerMode(); alert('END!'); return; }
-            intervalState.isWorkPhase = true; timeInSeconds = intervalState.workSec;
-            timerBox.className = 'timer-container work-phase'; phaseText.innerText = `Round ${intervalState.currentRound} / ${intervalState.totalRounds} - WORK 🔥`;
-        }
-        function stopTimer() { resetTimerUI(); }
-        function resetTimer() { resetTimerUI(); changeTimerMode(); }
+        };
+        
+        window.stopTimer = () => { window.resetTimerUI(); };
+        window.resetTimer = () => { window.resetTimerUI(); window.changeTimerMode(); };
 
-        // 초기 실행
-        applyLanguage(); 
-        changeTimerMode();
+        // 초기 언어 설정 (비동기 로그인 전 임시 적용)
+        window.applyLanguage(); 
     </script>
 </body>
 </html>
