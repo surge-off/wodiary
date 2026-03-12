@@ -28,7 +28,7 @@
         .view.active { display: block; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 로그인 오버레이 (이메일 기반으로 변경) */
+        /* 로그인 오버레이 */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
         .login-title { font-size: 3.5rem; font-weight: 900; color: var(--primary-color); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .login-desc { color: var(--text-sub); margin-bottom: 40px; font-size: 1rem; }
@@ -41,7 +41,6 @@
         /* 공통 UI */
         .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
         .btn-action { background: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; font-weight: bold; }
-        .btn-export { background: #333; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; color: var(--text-main); font-weight: bold; display: flex; align-items: center; gap: 4px; }
         
         /* 대시보드 UI */
         .stats-container { display: flex; gap: 12px; margin-bottom: 25px; }
@@ -58,8 +57,6 @@
         .calendar-day { background: var(--surface-color); padding: 15px 0; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 600; position: relative; height: 30px; display: flex; justify-content: center; align-items: center; border: 1px solid transparent; }
         .calendar-day.empty { background: transparent; box-shadow: none; cursor: default; }
         .calendar-day.today { border: 2px solid var(--primary-color); color: var(--primary-color); }
-        
-        /* 계획 vs 완료 마커 */
         .has-record::after { content: ''; display: block; width: 6px; height: 6px; background-color: var(--primary-color); border-radius: 50%; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
         .has-plan::after { content: ''; display: block; width: 6px; height: 6px; border: 2px solid var(--primary-color); box-sizing: border-box; border-radius: 50%; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
         .calendar-day.is-rest { background-color: var(--rest-bg); border: 1px solid var(--rest-color); color: var(--rest-color); }
@@ -79,7 +76,8 @@
         .timer-display { font-size: 5.5rem; font-weight: 900; color: var(--text-main); margin: 10px 0 20px 0; letter-spacing: -2px; }
         .timer-phase { font-size: 1.3rem; font-weight: 800; color: var(--text-sub); height: 1.5rem; }
         .timer-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; }
-        .timer-controls button { padding: 16px 0; flex: 1; font-size: 1.1rem; font-weight: 900; border-radius: 12px; border: none; cursor: pointer; color: white; }
+        .timer-controls button { padding: 16px 0; flex: 1; font-size: 1.1rem; font-weight: 900; border-radius: 12px; border: none; cursor: pointer; color: white; transition: transform 0.1s; }
+        .timer-controls button:active { transform: scale(0.95); }
         .btn-start { background-color: var(--primary-color); }
         .btn-stop { background-color: #ff9800; display: none; }
         .btn-reset { background-color: #555; }
@@ -89,6 +87,16 @@
         .timer-container.rest-phase { background-color: #3b1818; border-color: #e53935; } 
         .timer-container.rest-phase .timer-display { color: #e53935; }
 
+        /* --- 라운드 체커 UI (새 기능) --- */
+        .round-checker-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
+        .round-checker-title { font-size: 1rem; font-weight: 800; color: var(--primary-color); margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .round-display-area { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px; }
+        .round-number { font-size: 4rem; font-weight: 900; color: var(--text-main); width: 80px; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; }
+        .btn-round { background: var(--surface-color); color: var(--text-main); border: 2px solid var(--border-color); width: 60px; height: 60px; border-radius: 50%; font-size: 2.5rem; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.1s; }
+        .btn-round:active { transform: scale(0.9); background: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .btn-round-reset { background: transparent; color: var(--text-sub); border: none; font-size: 0.85rem; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 5px; }
+
+        /* 오늘의 플랜 요약 박스 */
         .today-plan-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left;}
         .today-plan-header { font-size: 1rem; font-weight: 800; color: var(--primary-color); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
         .today-plan-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color); }
@@ -217,6 +225,17 @@
                     <button class="btn-stop" id="btn-timer-stop" onclick="stopTimer()">PAUSE</button>
                     <button class="btn-reset" id="btn-timer-reset" onclick="resetTimer()">RESET</button>
                 </div>
+
+                <div class="round-checker-box">
+                    <div class="round-checker-title"><span class="material-icons">autorenew</span> ROUND CHECKER</div>
+                    <div class="round-display-area">
+                        <button class="btn-round" onclick="subRound()">-</button>
+                        <div class="round-number" id="wod-round-count">0</div>
+                        <button class="btn-round" onclick="addRound()">+</button>
+                    </div>
+                    <button class="btn-round-reset" onclick="resetRoundCount()">초기화 (Reset)</button>
+                </div>
+
                 <div class="today-plan-box" id="timer-today-plan"></div>
             </div>
         </div>
@@ -322,14 +341,12 @@
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
                 window.currentUser = session.user;
-                document.getElementById('login-overlay').style.display = 'none'; // 창 숨김
-                await loadDataFromSupabase(); // DB에서 데이터 로드
-                
-                // UI 업데이트
+                document.getElementById('login-overlay').style.display = 'none';
+                await loadDataFromSupabase();
                 applyLanguage(); renderDashboard(); renderCalendar(); renderPRs(); renderTimerPlan();
             } else {
                 window.currentUser = null;
-                document.getElementById('login-overlay').style.display = 'flex'; // 창 표시
+                document.getElementById('login-overlay').style.display = 'flex';
                 window.workoutData = {}; window.prDataList = [];
             }
         });
@@ -361,7 +378,7 @@
             if (error) console.error("DB 저장 에러:", error);
         };
 
-        // --- 5. 기존 앱 로직 (이하 동일, 저장 방식만 saveDataToSupabase()로 변경됨) ---
+        // --- 5. 기존 앱 로직 ---
         const i18n = {
             ko: {
                 langFlag: "ENG", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER",
@@ -390,7 +407,7 @@
         window.currentLang = localStorage.getItem('crossfit_lang') || 'ko';
 
         window.applyLanguage = () => {
-            if(!document.getElementById('nav-home')) return; // 로그인 전 에러 방지
+            if(!document.getElementById('nav-home')) return;
             const t = i18n[currentLang];
             document.getElementById('btn-lang-toggle').innerHTML = `<span class="material-icons" style="font-size:1rem;">language</span> <span>${t.langFlag}</span>`;
             document.querySelector('#nav-home span').innerText = t.navHome; document.querySelector('#nav-calendar span').innerText = t.navCalendar;
@@ -590,7 +607,24 @@
             window.saveDataToSupabase(); renderWorkoutList(); showListView(); renderCalendar(); renderDashboard(); renderTimerPlan();
         };
 
-        // 타이머 생략 (이전과 동일)
+        // --- 💡 라운드 체커 로직 (새 기능) ---
+        let currentWodRound = 0;
+        window.addRound = () => {
+            currentWodRound++;
+            document.getElementById('wod-round-count').innerText = currentWodRound;
+        };
+        window.subRound = () => {
+            if(currentWodRound > 0) {
+                currentWodRound--;
+                document.getElementById('wod-round-count').innerText = currentWodRound;
+            }
+        };
+        window.resetRoundCount = () => {
+            currentWodRound = 0;
+            document.getElementById('wod-round-count').innerText = currentWodRound;
+        };
+
+        // 타이머 로직
         let timerInterval; let timeInSeconds = 0; let isTimerRunning = false; let intervalState = { currentRound: 1, totalRounds: 5, isWorkPhase: true, workSec: 40, restSec: 20 };
         const display = document.getElementById('timer-display'); const phaseText = document.getElementById('timer-phase-text'); const timerBox = document.getElementById('timer-box');
         window.changeTimerMode = () => { const t = document.getElementById('timer-type').value; document.getElementById('timer-setting-down').style.display = t==='down'?'flex':'none'; document.getElementById('timer-setting-interval').style.display = t==='interval'?'flex':'none'; window.resetTimerUI(); if(t==='down'){ timeInSeconds=(parseInt(document.getElementById('t-down-min').value)||0)*60+(parseInt(document.getElementById('t-down-sec').value)||0); } else if(t==='interval'){ intervalState.workSec=parseInt(document.getElementById('t-int-work').value)||40; intervalState.restSec=parseInt(document.getElementById('t-int-rest').value)||20; intervalState.totalRounds=parseInt(document.getElementById('t-int-round').value)||5; intervalState.currentRound=1; intervalState.isWorkPhase=true; timeInSeconds=intervalState.workSec; phaseText.innerText=`Round 1 / ${intervalState.totalRounds} - READY`; } else { timeInSeconds=0; } window.updateTimerDisplay(); };
