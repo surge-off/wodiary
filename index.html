@@ -87,7 +87,7 @@
         .timer-container.rest-phase { background-color: #3b1818; border-color: #e53935; } 
         .timer-container.rest-phase .timer-display { color: #e53935; }
 
-        /* --- 라운드 체커 UI (새 기능) --- */
+        /* 라운드 체커 UI */
         .round-checker-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
         .round-checker-title { font-size: 1rem; font-weight: 800; color: var(--primary-color); margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 5px; }
         .round-display-area { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px; }
@@ -145,7 +145,7 @@
 <body>
 
     <div id="login-overlay">
-        <div class="login-title"><span class="material-icons" style="font-size: 3.5rem;">fitness_center</span> WODiary</div>
+        <div class="login-title"><img src="wodiary_logo.png" style="height: 4rem; width: auto; border-radius: 50%; box-shadow: 0 4px 10px rgba(255,59,48,0.3);" alt="로고"> WODiary</div>
         <div class="login-desc">나만의 크로스핏 다이어리 (Cloud)</div>
         <div class="login-form">
             <input type="email" id="auth-email" placeholder="이메일 주소">
@@ -156,7 +156,7 @@
     </div>
 
     <header>
-        <div class="header-title"><span class="material-icons" style="font-size: 1.6rem;">fitness_center</span> WODiary</div>
+        <div class="header-title"><img src="wodiary_logo.png" style="height: 1.8rem; width: auto; border-radius: 50%;" alt="로고"> WODiary</div>
         <div class="header-buttons">
             <button class="btn-header" id="btn-lang-toggle" onclick="toggleLanguage()"><span class="material-icons" style="font-size: 1rem;">language</span> <span>ENG</span></button>
             <button class="btn-header" onclick="logoutUser()"><span class="material-icons" style="font-size: 1rem;">logout</span></button>
@@ -313,12 +313,11 @@
         window.prDataList = [];
         window.currentUser = null;
 
-        // --- 3. 인증(로그인/회원가입) 로직 ---
+        // --- 3. 인증 로직 ---
         window.signUpUser = async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             if(!email || password.length < 6) return alert("이메일과 6자리 이상의 비밀번호를 입력해주세요.");
-            
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if(error) alert("가입 실패: " + error.message);
             else alert("가입 성공! 이제 로그인 되었습니다.");
@@ -332,12 +331,9 @@
         };
 
         window.logoutUser = async () => {
-            if(confirm("로그아웃 하시겠습니까?")) {
-                await supabaseClient.auth.signOut();
-            }
+            if(confirm("로그아웃 하시겠습니까?")) { await supabaseClient.auth.signOut(); }
         };
 
-        // 로그인 상태 실시간 감지
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
                 window.currentUser = session.user;
@@ -351,57 +347,23 @@
             }
         });
 
-        // --- 4. 클라우드 DB 연동 로직 ---
+        // --- 4. DB 연동 로직 ---
         async function loadDataFromSupabase() {
             if (!window.currentUser) return;
-            const { data, error } = await supabaseClient
-                .from('user_data')
-                .select('*')
-                .eq('user_id', window.currentUser.id)
-                .single();
-
-            if (data) {
-                window.workoutData = data.workout_data || {};
-                window.prDataList = data.pr_data || [];
-            }
+            const { data, error } = await supabaseClient.from('user_data').select('*').eq('user_id', window.currentUser.id).single();
+            if (data) { window.workoutData = data.workout_data || {}; window.prDataList = data.pr_data || []; }
         }
 
         window.saveDataToSupabase = async () => {
             if (!window.currentUser) return;
-            const { error } = await supabaseClient
-                .from('user_data')
-                .upsert({
-                    user_id: window.currentUser.id,
-                    workout_data: window.workoutData,
-                    pr_data: window.prDataList
-                });
+            const { error } = await supabaseClient.from('user_data').upsert({ user_id: window.currentUser.id, workout_data: window.workoutData, pr_data: window.prDataList });
             if (error) console.error("DB 저장 에러:", error);
         };
 
-        // --- 5. 기존 앱 로직 ---
+        // --- 5. 앱 기능 로직 ---
         const i18n = {
-            ko: {
-                langFlag: "ENG", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER",
-                monthSummary: "이번 달 요약", wipeData: "내 데이터 초기화", noRecord: "기록이 없습니다.", calcTitle: "1RM % 계산기",
-                addPr: "+ ADD PR", timerMode: "모드 선택", intWork: "WORK", intRest: "REST", intRound: "ROUND",
-                btnAddWod: "+ 계획 / 운동 추가", btnClose: "CLOSE", lblSticker: "스티커 (완료 시 표시)", lblType: "분류",
-                lblName: "WOD / 동작", lblScore: "기록 (Score/Weight)", lblMemo: "메모 / 목표",
-                lblCompleted: "운동 완료 (체크 해제 시 '계획'으로 저장)", txtPlan: "계획", txtDone: "완료",
-                btnBack: "BACK", btnSave: "SAVE", btnCancel: "CANCEL", prModalTitle: "PR 기록", prDate: "Date", prName: "Movement", prRecord: "Record",
-                alertDel: "이 기록을 삭제하시겠습니까?", alertPrIncomplete: "종목과 기록을 모두 입력해주세요!", alertAutoPr: "PR이 달력에 추가되었습니다! 🏆",
-                alertWipe1: "⚠️ 데이터를 삭제하시겠습니까?", alertWipe2: "모든 기록이 삭제됩니다. 계속하시겠습니까?", todayPlanTitle: "오늘의 WOD 계획", noPlanToday: "오늘 계획된 운동이 없습니다."
-            },
-            en: {
-                langFlag: "KOR", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER",
-                monthSummary: "Month Summary", wipeData: "Reset All Data", noRecord: "No records found.", calcTitle: "1RM % Calc",
-                addPr: "+ ADD PR", timerMode: "Timer Mode", intWork: "WORK", intRest: "REST", intRound: "ROUNDS",
-                btnAddWod: "+ ADD PLAN / WOD", btnClose: "CLOSE", lblSticker: "Sticker (If Done)", lblType: "Type",
-                lblName: "WOD / Movement", lblScore: "Score / Weight", lblMemo: "Goal / Notes",
-                lblCompleted: "Completed (Uncheck to save as 'Plan')", txtPlan: "Plan", txtDone: "Done",
-                btnBack: "BACK", btnSave: "SAVE", btnCancel: "CANCEL", prModalTitle: "Personal Record", prDate: "Date", prName: "Movement", prRecord: "Record",
-                alertDel: "Delete this record?", alertPrIncomplete: "Please fill in fields!", alertAutoPr: "PR added to calendar! 🏆",
-                alertWipe1: "⚠️ Delete ALL data?", alertWipe2: "All records will be permanently deleted. Proceed?", todayPlanTitle: "Today's WOD Plan", noPlanToday: "No workouts planned."
-            }
+            ko: { langFlag: "ENG", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER", monthSummary: "이번 달 요약", wipeData: "내 데이터 초기화", noRecord: "기록이 없습니다.", calcTitle: "1RM % 계산기", addPr: "+ ADD PR", timerMode: "모드 선택", intWork: "WORK", intRest: "REST", intRound: "ROUND", btnAddWod: "+ 계획 / 운동 추가", btnClose: "CLOSE", lblSticker: "스티커 (완료 시 표시)", lblType: "분류", lblName: "WOD / 동작", lblScore: "기록 (Score/Weight)", lblMemo: "메모 / 목표", lblCompleted: "운동 완료 (체크 해제 시 '계획'으로 저장)", txtPlan: "계획", txtDone: "완료", btnBack: "BACK", btnSave: "SAVE", btnCancel: "CANCEL", prModalTitle: "PR 기록", prDate: "Date", prName: "Movement", prRecord: "Record", alertDel: "이 기록을 삭제하시겠습니까?", alertPrIncomplete: "종목과 기록을 모두 입력해주세요!", alertAutoPr: "PR이 달력에 추가되었습니다! 🏆", alertWipe1: "⚠️ 데이터를 삭제하시겠습니까?", alertWipe2: "모든 기록이 삭제됩니다. 계속하시겠습니까?", todayPlanTitle: "오늘의 WOD 계획", noPlanToday: "오늘 계획된 운동이 없습니다." },
+            en: { langFlag: "KOR", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER", monthSummary: "Month Summary", wipeData: "Reset All Data", noRecord: "No records found.", calcTitle: "1RM % Calc", addPr: "+ ADD PR", timerMode: "Timer Mode", intWork: "WORK", intRest: "REST", intRound: "ROUNDS", btnAddWod: "+ ADD PLAN / WOD", btnClose: "CLOSE", lblSticker: "Sticker (If Done)", lblType: "Type", lblName: "WOD / Movement", lblScore: "Score / Weight", lblMemo: "Goal / Notes", lblCompleted: "Completed (Uncheck to save as 'Plan')", txtPlan: "Plan", txtDone: "Done", btnBack: "BACK", btnSave: "SAVE", btnCancel: "CANCEL", prModalTitle: "Personal Record", prDate: "Date", prName: "Movement", prRecord: "Record", alertDel: "Delete this record?", alertPrIncomplete: "Please fill in fields!", alertAutoPr: "PR added to calendar! 🏆", alertWipe1: "⚠️ Delete ALL data?", alertWipe2: "All records will be permanently deleted. Proceed?", todayPlanTitle: "Today's WOD Plan", noPlanToday: "No workouts planned." }
         };
 
         window.currentLang = localStorage.getItem('crossfit_lang') || 'ko';
@@ -431,34 +393,16 @@
             if(targetId === 'view-home') renderDashboard(); if(targetId === 'view-calendar') renderCalendar(); if(targetId === 'view-pr') renderPRs(); if(targetId === 'view-timer') renderTimerPlan();
         };
 
-        window.deleteAllData = () => {
-            if(confirm(i18n[currentLang].alertWipe1)) {
-                if(confirm(i18n[currentLang].alertWipe2)) {
-                    window.workoutData = {}; window.prDataList = [];
-                    window.saveDataToSupabase();
-                    renderDashboard(); renderCalendar(); renderPRs(); renderTimerPlan();
-                }
-            }
-        };
+        window.deleteAllData = () => { if(confirm(i18n[currentLang].alertWipe1)) { if(confirm(i18n[currentLang].alertWipe2)) { window.workoutData = {}; window.prDataList = []; window.saveDataToSupabase(); renderDashboard(); renderCalendar(); renderPRs(); renderTimerPlan(); } } };
 
-        window.calc1RM = (val) => {
-            const w = parseFloat(val); const d = document.getElementById('calc-result');
-            if(!w || w <= 0) { d.innerHTML = ''; return; }
-            let html = ''; [95, 90, 85, 80, 75, 65, 55, 50].forEach(p => html += `<div><span style="color:var(--text-sub); font-size:0.8rem;">${p}%</span><br><strong style="color:var(--text-main);">${(w * p / 100).toFixed(1)}</strong></div>`);
-            d.innerHTML = html;
-        };
+        window.calc1RM = (val) => { const w = parseFloat(val); const d = document.getElementById('calc-result'); if(!w || w <= 0) { d.innerHTML = ''; return; } let html = ''; [95, 90, 85, 80, 75, 65, 55, 50].forEach(p => html += `<div><span style="color:var(--text-sub); font-size:0.8rem;">${p}%</span><br><strong style="color:var(--text-main);">${(w * p / 100).toFixed(1)}</strong></div>`); d.innerHTML = html; };
 
         window.renderTimerPlan = () => {
             const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
             const c = document.getElementById('timer-today-plan'); const recs = window.workoutData[todayStr] || [];
             let html = `<div class="today-plan-header"><span class="material-icons">assignment</span> ${i18n[currentLang].todayPlanTitle} (${todayStr})</div>`;
             if (recs.length === 0) html += `<p style="color:var(--text-sub); text-align:center; font-size:0.9rem; margin:15px 0;">${i18n[currentLang].noPlanToday}</p>`;
-            else {
-                recs.forEach(r => {
-                    const icon = r.isCompleted ? '<span class="material-icons" style="color:var(--primary-color); font-size:1.1rem;">check_circle</span>' : '<span class="material-icons" style="color:#ff9800; font-size:1.1rem;">hourglass_empty</span>';
-                    html += `<div class="today-plan-item"><div class="tp-title">${icon} ${r.type} ${r.name ? ' - ' + r.name : ''}</div>${r.memo ? `<div class="tp-memo">${r.memo}</div>` : ''}</div>`;
-                });
-            }
+            else { recs.forEach(r => { const icon = r.isCompleted ? '<span class="material-icons" style="color:var(--primary-color); font-size:1.1rem;">check_circle</span>' : '<span class="material-icons" style="color:#ff9800; font-size:1.1rem;">hourglass_empty</span>'; html += `<div class="today-plan-item"><div class="tp-title">${icon} ${r.type} ${r.name ? ' - ' + r.name : ''}</div>${r.memo ? `<div class="tp-memo">${r.memo}</div>` : ''}</div>`; }); }
             c.innerHTML = html;
         };
 
@@ -467,162 +411,50 @@
             const c = document.getElementById('pr-list-container'); c.innerHTML = '';
             const sorted = [...window.prDataList].sort((a, b) => new Date(b.date) - new Date(a.date));
             if(sorted.length === 0) { c.innerHTML = `<p style="text-align:center; color:var(--text-sub); margin-top:30px;">${i18n[currentLang].noRecord}</p>`; return; }
-            sorted.forEach(pr => {
-                const idx = window.prDataList.findIndex(item => item === pr);
-                const div = document.createElement('div'); div.className = 'pr-item';
-                div.innerHTML = `<div class="pr-item-content" onclick="openPRModal(${idx})"><div class="pr-header"><span>${pr.type}</span><span class="pr-record-val">${pr.record}</span></div><div class="pr-date">${pr.date}</div></div>
-                                 <button class="btn-icon-delete" onclick="deletePRDirect(${idx}, event)"><span class="material-icons">delete</span></button>`;
-                c.appendChild(div);
-            });
+            sorted.forEach(pr => { const idx = window.prDataList.findIndex(item => item === pr); const div = document.createElement('div'); div.className = 'pr-item'; div.innerHTML = `<div class="pr-item-content" onclick="openPRModal(${idx})"><div class="pr-header"><span>${pr.type}</span><span class="pr-record-val">${pr.record}</span></div><div class="pr-date">${pr.date}</div></div><button class="btn-icon-delete" onclick="deletePRDirect(${idx}, event)"><span class="material-icons">delete</span></button>`; c.appendChild(div); });
         };
-
         window.deletePRDirect = (idx, e) => { e.stopPropagation(); if(confirm(i18n[currentLang].alertDel)) { window.prDataList.splice(idx, 1); window.saveDataToSupabase(); renderPRs(); } };
-
-        window.openPRModal = (idx) => {
-            currentPrIndex = idx;
-            const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-            if(idx > -1) {
-                const pr = window.prDataList[idx]; document.getElementById('pr-input-date').value = pr.date; document.getElementById('pr-input-type').value = pr.type; document.getElementById('pr-input-record').value = pr.record;
-            } else { document.getElementById('pr-input-date').value = todayStr; document.getElementById('pr-input-type').value = ''; document.getElementById('pr-input-record').value = ''; }
-            document.getElementById('pr-modal').classList.add('active');
-        };
-
-        window.savePR = () => {
-            let date = document.getElementById('pr-input-date').value;
-            const type = document.getElementById('pr-input-type').value.trim(); const record = document.getElementById('pr-input-record').value.trim();
-            if(!type || !record) { alert(i18n[currentLang].alertPrIncomplete); return; }
-            if(!date) date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-
-            const newPR = { date, type, record }; const isNew = (currentPrIndex === -1);
-            if(!isNew) window.prDataList[currentPrIndex] = newPR; else window.prDataList.push(newPR);
-            closeModal('pr-modal'); renderPRs(); 
-
-            if (isNew) {
-                if (!window.workoutData[date]) window.workoutData[date] = [];
-                window.workoutData[date].push({ type: 'Strength', name: `[PR] ${type}`, score: record, memo: 'PR Update!', sticker: 'star', isCompleted: true });
-                renderCalendar(); renderDashboard(); setTimeout(() => { alert(i18n[currentLang].alertAutoPr); }, 300);
-            }
-            window.saveDataToSupabase();
-        };
+        window.openPRModal = (idx) => { currentPrIndex = idx; const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]; if(idx > -1) { const pr = window.prDataList[idx]; document.getElementById('pr-input-date').value = pr.date; document.getElementById('pr-input-type').value = pr.type; document.getElementById('pr-input-record').value = pr.record; } else { document.getElementById('pr-input-date').value = todayStr; document.getElementById('pr-input-type').value = ''; document.getElementById('pr-input-record').value = ''; } document.getElementById('pr-modal').classList.add('active'); };
+        window.savePR = () => { let date = document.getElementById('pr-input-date').value; const type = document.getElementById('pr-input-type').value.trim(); const record = document.getElementById('pr-input-record').value.trim(); if(!type || !record) { alert(i18n[currentLang].alertPrIncomplete); return; } if(!date) date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]; const newPR = { date, type, record }; const isNew = (currentPrIndex === -1); if(!isNew) window.prDataList[currentPrIndex] = newPR; else window.prDataList.push(newPR); closeModal('pr-modal'); renderPRs(); if (isNew) { if (!window.workoutData[date]) window.workoutData[date] = []; window.workoutData[date].push({ type: 'Strength', name: `[PR] ${type}`, score: record, memo: 'PR Update!', sticker: 'star', isCompleted: true }); renderCalendar(); renderDashboard(); setTimeout(() => { alert(i18n[currentLang].alertAutoPr); }, 300); } window.saveDataToSupabase(); };
 
         let currentDate = new Date(); let selectedDateString = ""; let currentEditIndex = -1;
-
         window.renderDashboard = () => {
             const y = currentDate.getFullYear(); const mStr = String(currentDate.getMonth() + 1).padStart(2, '0');
             document.getElementById('dashboard-month-title').innerText = currentLang === 'ko' ? `${currentDate.getMonth() + 1}월 요약` : `${currentDate.toLocaleString('en-US', { month: 'long' })} Summary`;
             let wCount = 0, rCount = 0, all = [];
-            for (const d in window.workoutData) {
-                if (d.startsWith(`${y}-${mStr}`) && window.workoutData[d].length > 0) {
-                    if (window.workoutData[d].some(r => r.isCompleted && r.type !== 'Rest')) wCount++;
-                    if (window.workoutData[d].some(r => r.isCompleted && r.type === 'Rest')) rCount++;
-                }
-                window.workoutData[d].forEach(r => all.push({ date: d, ...r }));
-            }
+            for (const d in window.workoutData) { if (d.startsWith(`${y}-${mStr}`) && window.workoutData[d].length > 0) { if (window.workoutData[d].some(r => r.isCompleted && r.type !== 'Rest')) wCount++; if (window.workoutData[d].some(r => r.isCompleted && r.type === 'Rest')) rCount++; } window.workoutData[d].forEach(r => all.push({ date: d, ...r })); }
             document.getElementById('stat-workout-days').innerText = wCount; document.getElementById('stat-rest-days').innerText = rCount;
-            all.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const recent = all.slice(0, 4); const c = document.getElementById('recent-workout-list'); c.innerHTML = '';
+            all.sort((a, b) => new Date(b.date) - new Date(a.date)); const recent = all.slice(0, 4); const c = document.getElementById('recent-workout-list'); c.innerHTML = '';
             if (recent.length === 0) c.innerHTML = `<p style="color:var(--text-sub);text-align:center;">${i18n[currentLang].noRecord}</p>`;
-            else recent.forEach(r => {
-                const div = document.createElement('div'); div.className = 'workout-item';
-                const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : '';
-                const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`;
-                if(r.type === 'Rest') { div.classList.add('rest-item'); div.innerHTML = `<div class="workout-item-title">${r.date} - Rest ${badge}</div>${st}`; }
-                else { div.innerHTML = `<div class="workout-item-title">${r.date} ${badge}</div><div class="workout-item-desc">${r.type}${r.name?' - '+r.name:''}</div>${st}`; }
-                div.onclick = () => { document.querySelector('[data-target="view-calendar"]').click(); openDateModal(r.date); }; c.appendChild(div);
-            });
+            else recent.forEach(r => { const div = document.createElement('div'); div.className = 'workout-item'; const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : ''; const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`; if(r.type === 'Rest') { div.classList.add('rest-item'); div.innerHTML = `<div class="workout-item-title">${r.date} - Rest ${badge}</div>${st}`; } else { div.innerHTML = `<div class="workout-item-title">${r.date} ${badge}</div><div class="workout-item-desc">${r.type}${r.name?' - '+r.name:''}</div>${st}`; } div.onclick = () => { document.querySelector('[data-target="view-calendar"]').click(); openDateModal(r.date); }; c.appendChild(div); });
         };
 
         window.changeMonth = (val) => { currentDate.setMonth(currentDate.getMonth() + val); renderCalendar(); renderDashboard(); };
-
         window.renderCalendar = () => {
-            const y = currentDate.getFullYear(), m = currentDate.getMonth();
-            document.getElementById('current-month-year').innerText = currentLang === 'ko' ? `${y}년 ${m + 1}월` : `${new Date(y, m).toLocaleString('en-US', { month: 'long' })} ${y}`;
-            const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
-            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            const daysArr = currentLang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            daysArr.forEach(d => { const v = document.createElement('div'); v.className = 'day-name'; v.innerText = d; grid.appendChild(v); });
+            const y = currentDate.getFullYear(), m = currentDate.getMonth(); document.getElementById('current-month-year').innerText = currentLang === 'ko' ? `${y}년 ${m + 1}월` : `${new Date(y, m).toLocaleString('en-US', { month: 'long' })} ${y}`;
+            const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate(); const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const daysArr = currentLang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; daysArr.forEach(d => { const v = document.createElement('div'); v.className = 'day-name'; v.innerText = d; grid.appendChild(v); });
             for (let i = 0; i < firstDay; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day empty' }));
             const today = new Date();
-            for (let i = 1; i <= daysInMonth; i++) {
-                const div = document.createElement('div'); div.className = 'calendar-day'; div.innerText = i;
-                const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                if (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()) div.classList.add('today');
-                if (window.workoutData[dStr] && window.workoutData[dStr].length > 0) {
-                    let isR=false, hD=false, hP=false, stk=null;
-                    window.workoutData[dStr].forEach(r => { if(r.type==='Rest') isR=true; if(r.isCompleted) { hD=true; if(r.sticker) stk=r.sticker; } else hP=true; });
-                    if (isR && hD) div.classList.add('is-rest');
-                    else if (stk) div.innerHTML = `<span style="position:absolute; top:5px;">${i}</span><span class="day-sticker material-icons" style="font-size:1rem; color:var(--primary-color);">${stk}</span>`;
-                    else if (hD) div.classList.add('has-record'); else if (hP) div.classList.add('has-plan');
-                }
-                div.onclick = () => openDateModal(dStr); grid.appendChild(div);
-            }
+            for (let i = 1; i <= daysInMonth; i++) { const div = document.createElement('div'); div.className = 'calendar-day'; div.innerText = i; const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`; if (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()) div.classList.add('today'); if (window.workoutData[dStr] && window.workoutData[dStr].length > 0) { let isR=false, hD=false, hP=false, stk=null; window.workoutData[dStr].forEach(r => { if(r.type==='Rest') isR=true; if(r.isCompleted) { hD=true; if(r.sticker) stk=r.sticker; } else hP=true; }); if (isR && hD) div.classList.add('is-rest'); else if (stk) div.innerHTML = `<span style="position:absolute; top:5px;">${i}</span><span class="day-sticker material-icons" style="font-size:1rem; color:var(--primary-color);">${stk}</span>`; else if (hD) div.classList.add('has-record'); else if (hP) div.classList.add('has-plan'); } div.onclick = () => openDateModal(dStr); grid.appendChild(div); }
         };
 
         window.openDateModal = (d) => { selectedDateString = d; document.getElementById('modal-date-title').innerText = d; renderWorkoutList(); showListView(); document.getElementById('record-modal').classList.add('active'); };
-
         window.renderWorkoutList = () => {
-            const c = document.getElementById('workout-list'); c.innerHTML = '';
-            const recs = window.workoutData[selectedDateString] || [];
-            if (recs.length === 0) c.innerHTML = `<p style="text-align:center;color:var(--text-sub);">${i18n[currentLang].noRecord}</p>`;
-            else recs.forEach((r, i) => {
-                const div = document.createElement('div'); div.className = 'workout-item';
-                const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : '';
-                const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`;
-                let html = '';
-                if(r.type === 'Rest') { div.classList.add('rest-item'); html = `<div class="workout-item-title">Rest ${badge}</div>${st}`; }
-                else { html = `<div class="workout-item-title">${r.type}${r.name?' - '+r.name:''} ${badge}</div><div class="workout-item-desc">${r.memo||'Rec: '+ (r.score||'-')}</div>${st}`; }
-                div.innerHTML = `<div class="workout-item-content" onclick="openFormView(${i})">${html}</div><button class="btn-icon-delete" onclick="deleteWorkoutDirect(${i}, event)"><span class="material-icons">delete</span></button>`;
-                c.appendChild(div);
-            });
+            const c = document.getElementById('workout-list'); c.innerHTML = ''; const recs = window.workoutData[selectedDateString] || [];
+            if (recs.length === 0) c.innerHTML = `<p style="text-align:center;color:var(--text-sub);">${i18n[currentLang].noRecord}</p>`; else recs.forEach((r, i) => { const div = document.createElement('div'); div.className = 'workout-item'; const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons" style="font-size:1.1rem; color:var(--primary-color);">${r.sticker}</span></span>` : ''; const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`; let html = ''; if(r.type === 'Rest') { div.classList.add('rest-item'); html = `<div class="workout-item-title">Rest ${badge}</div>${st}`; } else { html = `<div class="workout-item-title">${r.type}${r.name?' - '+r.name:''} ${badge}</div><div class="workout-item-desc">${r.memo||'Rec: '+ (r.score||'-')}</div>${st}`; } div.innerHTML = `<div class="workout-item-content" onclick="openFormView(${i})">${html}</div><button class="btn-icon-delete" onclick="deleteWorkoutDirect(${i}, event)"><span class="material-icons">delete</span></button>`; c.appendChild(div); });
         };
-
-        window.deleteWorkoutDirect = (idx, e) => {
-            e.stopPropagation();
-            if(confirm(i18n[currentLang].alertDel)) {
-                window.workoutData[selectedDateString].splice(idx, 1);
-                if (window.workoutData[selectedDateString].length === 0) delete window.workoutData[selectedDateString];
-                window.saveDataToSupabase(); renderWorkoutList(); renderCalendar(); renderDashboard(); renderTimerPlan();
-            }
-        };
-
+        window.deleteWorkoutDirect = (idx, e) => { e.stopPropagation(); if(confirm(i18n[currentLang].alertDel)) { window.workoutData[selectedDateString].splice(idx, 1); if (window.workoutData[selectedDateString].length === 0) delete window.workoutData[selectedDateString]; window.saveDataToSupabase(); renderWorkoutList(); renderCalendar(); renderDashboard(); renderTimerPlan(); } };
         window.showListView = () => { document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none'; };
         window.closeModal = (id) => { document.getElementById(id).classList.remove('active'); };
+        window.openFormView = (idx) => { currentEditIndex = idx; document.getElementById('modal-list-view').style.display = 'none'; document.getElementById('modal-form-view').style.display = 'block'; const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]; if (idx > -1) { const r = window.workoutData[selectedDateString][idx]; document.getElementById('wod-completed').checked = r.isCompleted; ['type', 'name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = r[k] || (k==='type'?'AMRAP':'')); } else { document.getElementById('wod-completed').checked = selectedDateString <= todayStr; ['name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = ''); document.getElementById('wod-type').value = 'AMRAP'; } };
+        window.saveWorkout = () => { const r = { isCompleted: document.getElementById('wod-completed').checked, type: document.getElementById('wod-type').value, name: document.getElementById('wod-name').value, score: document.getElementById('wod-score').value, memo: document.getElementById('wod-memo').value, sticker: document.getElementById('wod-sticker').value }; if (!window.workoutData[selectedDateString]) window.workoutData[selectedDateString] = []; if (currentEditIndex > -1) window.workoutData[selectedDateString][currentEditIndex] = r; else window.workoutData[selectedDateString].push(r); window.saveDataToSupabase(); renderWorkoutList(); showListView(); renderCalendar(); renderDashboard(); renderTimerPlan(); };
 
-        window.openFormView = (idx) => {
-            currentEditIndex = idx; document.getElementById('modal-list-view').style.display = 'none'; document.getElementById('modal-form-view').style.display = 'block';
-            const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-            if (idx > -1) {
-                const r = window.workoutData[selectedDateString][idx]; document.getElementById('wod-completed').checked = r.isCompleted;
-                ['type', 'name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = r[k] || (k==='type'?'AMRAP':''));
-            } else {
-                document.getElementById('wod-completed').checked = selectedDateString <= todayStr;
-                ['name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = ''); document.getElementById('wod-type').value = 'AMRAP';
-            }
-        };
-
-        window.saveWorkout = () => {
-            const r = { isCompleted: document.getElementById('wod-completed').checked, type: document.getElementById('wod-type').value, name: document.getElementById('wod-name').value, score: document.getElementById('wod-score').value, memo: document.getElementById('wod-memo').value, sticker: document.getElementById('wod-sticker').value };
-            if (!window.workoutData[selectedDateString]) window.workoutData[selectedDateString] = [];
-            if (currentEditIndex > -1) window.workoutData[selectedDateString][currentEditIndex] = r; else window.workoutData[selectedDateString].push(r);
-            window.saveDataToSupabase(); renderWorkoutList(); showListView(); renderCalendar(); renderDashboard(); renderTimerPlan();
-        };
-
-        // --- 💡 라운드 체커 로직 (새 기능) ---
+        // 라운드 체커 로직
         let currentWodRound = 0;
-        window.addRound = () => {
-            currentWodRound++;
-            document.getElementById('wod-round-count').innerText = currentWodRound;
-        };
-        window.subRound = () => {
-            if(currentWodRound > 0) {
-                currentWodRound--;
-                document.getElementById('wod-round-count').innerText = currentWodRound;
-            }
-        };
-        window.resetRoundCount = () => {
-            currentWodRound = 0;
-            document.getElementById('wod-round-count').innerText = currentWodRound;
-        };
+        window.addRound = () => { currentWodRound++; document.getElementById('wod-round-count').innerText = currentWodRound; };
+        window.subRound = () => { if(currentWodRound > 0) { currentWodRound--; document.getElementById('wod-round-count').innerText = currentWodRound; } };
+        window.resetRoundCount = () => { currentWodRound = 0; document.getElementById('wod-round-count').innerText = currentWodRound; };
 
         // 타이머 로직
         let timerInterval; let timeInSeconds = 0; let isTimerRunning = false; let intervalState = { currentRound: 1, totalRounds: 5, isWorkPhase: true, workSec: 40, restSec: 20 };
