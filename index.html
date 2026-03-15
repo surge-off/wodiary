@@ -19,6 +19,18 @@
     --success: #006600;
   }
 
+  /* ── DARK MODE VARIABLES ── */
+  body.dark-theme {
+    --bg: #121212;
+    --fg: #ffffff;
+    --fg-muted: #a0a0a0;
+    --fg-faint: #444444;
+    --border: #2a2a2a;
+    --border-dark: #555555;
+    --accent: #ffffff;
+    --surface: #1e1e1e;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -30,6 +42,7 @@
     margin: 0 auto;
     position: relative;
     overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
   }
 
   /* ── SCREENS ── */
@@ -48,9 +61,10 @@
     padding: 20px 20px 10px;
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    justify-content: space-between;
     border-bottom: 1.5px solid var(--fg);
   }
+  .header-left { display: flex; align-items: baseline; gap: 10px; }
   .app-logo {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 32px;
@@ -62,6 +76,10 @@
     font-size: 11px;
     color: var(--fg-muted);
     letter-spacing: 1px;
+  }
+  .settings-btn {
+    background: none; border: none; cursor: pointer; color: var(--fg);
+    display: flex; align-items: center; justify-content: center;
   }
 
   /* ── BOTTOM NAV ── */
@@ -100,547 +118,172 @@
   .nav-btn svg { width: 20px; height: 20px; }
 
   /* ── CALENDAR SCREEN ── */
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--fg-muted);
-    padding: 18px 20px 10px;
-  }
-
   .cal-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 20px;
+    padding: 10px 20px 0;
   }
-  .cal-month {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 3px;
-  }
+  .cal-month { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; }
   .cal-nav-btn {
-    background: none;
-    border: 1.5px solid var(--fg);
-    width: 32px; height: 32px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
+    background: none; border: 1.5px solid var(--fg);
+    width: 32px; height: 32px; cursor: pointer; color: var(--fg);
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
   .cal-nav-btn:hover { background: var(--fg); color: var(--bg); }
 
+  /* 월간 통계 (신규 기능) */
+  .monthly-stats {
+    display: flex; justify-content: center; gap: 15px;
+    padding: 8px 20px 10px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px;
+  }
+  .stat-item { display: flex; align-items: center; gap: 4px; color: var(--fg-muted); }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
   .cal-grid-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 0 10px;
-    border-bottom: 1px solid var(--border);
-    border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px;
+    border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);
   }
   .cal-day-label {
-    text-align: center;
-    padding: 8px 0;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--fg-muted);
+    text-align: center; padding: 8px 0; font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 1px; color: var(--fg-muted);
   }
 
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 0 10px;
-    gap: 2px;
-  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px; gap: 2px; }
   .cal-cell {
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 4px 2px 2px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.12s;
-    position: relative;
-    min-height: 44px;
+    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: 4px 2px 2px; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.12s; position: relative; min-height: 44px;
   }
   .cal-cell:hover { border-color: var(--border-dark); }
   .cal-cell.today { border-color: var(--fg); }
-  .cal-cell.has-workout::after {
-    content: '';
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--fg);
-    position: absolute;
-    bottom: 4px;
-  }
-  .cal-cell.done-workout::after { background: var(--success); }
-  .cal-cell.has-pr::before {
-    content: '★';
-    font-size: 8px;
-    color: var(--fg-muted);
-    position: absolute;
-    top: 2px;
-    right: 2px;
-  }
-  .cal-cell .cell-num {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-  }
+  .cal-cell.has-pr::before { content: '★'; font-size: 8px; color: var(--fg-muted); position: absolute; top: 2px; right: 2px; }
+  .cal-cell .cell-num { font-family: 'DM Mono', monospace; font-size: 12px; }
   .cal-cell.other-month .cell-num { color: var(--fg-faint); }
   .cal-cell.selected { background: var(--fg); }
   .cal-cell.selected .cell-num { color: var(--bg); }
 
-  /* workout dot indicators inside cell */
-  .cell-dots {
-    display: flex;
-    gap: 2px;
-    margin-top: 2px;
-  }
-  .cell-dot {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-  }
-  .dot-cf { background: #c00; }
-  .dot-run { background: #06a; }
-  .dot-lift { background: #660; }
+  .cell-dots { display: flex; gap: 2px; margin-top: 2px; }
+  .cell-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .dot-cf { background: #c00; } .dot-run { background: #06a; } .dot-lift { background: #660; }
 
   /* ── DAY DETAIL ── */
-  .day-detail {
-    border-top: 1.5px solid var(--fg);
-    padding: 16px 20px;
-  }
-  .day-detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-  .day-detail-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-  }
-  .add-workout-btn {
-    background: var(--fg);
-    color: var(--bg);
-    border: none;
-    padding: 6px 14px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    text-transform: uppercase;
-  }
+  .day-detail { border-top: 1.5px solid var(--fg); padding: 16px 20px; }
+  .day-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .day-detail-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; }
+  .add-workout-btn { background: var(--fg); color: var(--bg); border: none; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; }
 
   .workout-list { display: flex; flex-direction: column; gap: 8px; }
-  .workout-card {
-    border: 1px solid var(--border);
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .workout-type-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 2px;
-    padding: 3px 8px;
-    border: 1px solid;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-  .badge-cf { border-color: #c00; color: #c00; }
-  .badge-run { border-color: #06a; color: #06a; }
-  .badge-lift { border-color: #660; color: #660; }
+  .workout-card { border: 1px solid var(--border); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  .workout-type-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; padding: 3px 8px; border: 1px solid; text-transform: uppercase; flex-shrink: 0; }
+  .badge-cf { border-color: #c00; color: #c00; } .badge-run { border-color: #06a; color: #06a; } .badge-lift { border-color: #660; color: #660; }
 
   .workout-info { flex: 1; }
   .workout-name { font-size: 13px; font-weight: 500; }
   .workout-note { font-size: 11px; color: var(--fg-muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-
-  .done-toggle {
-    width: 24px; height: 24px;
-    border: 1.5px solid var(--border-dark);
-    background: none;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
+  .done-toggle { width: 24px; height: 24px; border: 1.5px solid var(--border-dark); background: none; color: var(--fg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: all 0.15s; }
   .done-toggle.done { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-
-  .delete-btn {
-    background: none;
-    border: none;
-    color: var(--fg-faint);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 2px 4px;
-    transition: color 0.15s;
-  }
+  .delete-btn { background: none; border: none; color: var(--fg-faint); cursor: pointer; font-size: 16px; padding: 2px 4px; transition: color 0.15s; }
   .delete-btn:hover { color: var(--danger); }
+  .empty-state { text-align: center; padding: 24px; color: var(--fg-muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; }
 
-  .empty-state {
-    text-align: center;
-    padding: 24px;
-    color: var(--fg-muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-  }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 200;
-    align-items: flex-end;
-    justify-content: center;
-  }
+  /* ── MODALS ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--bg);
-    width: 100%;
-    max-width: 430px;
-    border-top: 2px solid var(--fg);
-    padding: 20px;
-    animation: slideUp 0.2s ease;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
+  .modal { background: var(--bg); width: 100%; max-width: 430px; border-top: 2px solid var(--fg); padding: 20px; animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
   @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-  .modal-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 3px;
-    margin-bottom: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--fg-muted);
-  }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--fg-muted); }
 
   .form-group { margin-bottom: 14px; }
-  .form-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--fg-muted);
-    display: block;
-    margin-bottom: 6px;
-  }
-  .form-input, .form-select, .form-textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid var(--border-dark);
-    background: var(--bg);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--fg);
-    outline: none;
-    transition: border-color 0.15s;
-  }
+  .form-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--fg-muted); display: block; margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-dark); background: var(--bg); color: var(--fg); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; }
   .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--fg); }
   .form-textarea { resize: vertical; min-height: 70px; }
 
-  .type-selector {
-    display: flex;
-    gap: 8px;
-  }
-  .type-btn {
-    flex: 1;
-    padding: 10px;
-    border: 1.5px solid var(--border);
-    background: none;
-    cursor: pointer;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
+  .type-selector { display: flex; gap: 8px; }
+  .type-btn { flex: 1; padding: 10px; border: 1.5px solid var(--border); color: var(--fg); background: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; transition: all 0.15s; }
   .type-btn.active-cf { border-color: #c00; background: #c00; color: #fff; }
   .type-btn.active-run { border-color: #06a; background: #06a; color: #fff; }
   .type-btn.active-lift { border-color: #660; background: #660; color: #fff; }
 
-  .submit-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--fg);
-    color: var(--bg);
-    border: none;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 3px;
-    cursor: pointer;
-    margin-top: 6px;
-    transition: opacity 0.15s;
-  }
+  .submit-btn { width: 100%; padding: 14px; background: var(--fg); color: var(--bg); border: none; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; cursor: pointer; margin-top: 6px; transition: opacity 0.15s; }
   .submit-btn:hover { opacity: 0.85; }
 
   /* ── TIMER SCREEN ── */
-  .timer-mode-selector {
-    display: flex;
-    border-bottom: 1.5px solid var(--fg);
-    border-top: 1px solid var(--border);
-  }
-  .timer-mode-btn {
-    flex: 1;
-    padding: 10px 0;
-    background: none;
-    border: none;
-    border-right: 1px solid var(--border);
-    cursor: pointer;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    color: var(--fg-muted);
-    transition: all 0.15s;
-    line-height: 1.2;
-  }
+  .timer-mode-selector { display: flex; border-bottom: 1.5px solid var(--fg); border-top: 1px solid var(--border); }
+  .timer-mode-btn { flex: 1; padding: 10px 0; background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1.5px; color: var(--fg-muted); transition: all 0.15s; line-height: 1.2; }
   .timer-mode-btn:last-child { border-right: none; }
   .timer-mode-btn.active { background: var(--fg); color: var(--bg); }
 
-  .timer-display {
-    padding: 30px 20px 20px;
-    text-align: center;
-  }
-  .timer-face {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 88px;
-    letter-spacing: 6px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .timer-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--fg-muted);
-    text-transform: uppercase;
-  }
+  .timer-display { padding: 30px 20px 20px; text-align: center; }
+  .timer-face { font-family: 'Bebas Neue', sans-serif; font-size: 88px; letter-spacing: 6px; line-height: 1; margin-bottom: 4px; color: var(--fg); }
+  .timer-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--fg-muted); text-transform: uppercase; }
 
-  .timer-settings {
-    padding: 0 20px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .timer-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border);
-    padding: 10px 14px;
-  }
-  .timer-row-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--fg-muted);
-    flex: 1;
-  }
-  .num-input-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .num-btn {
-    width: 30px; height: 30px;
-    border: 1.5px solid var(--fg);
-    background: none;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s;
-  }
+  .timer-settings { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .timer-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); padding: 10px 14px; }
+  .timer-row-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--fg-muted); flex: 1; }
+  .num-input-group { display: flex; align-items: center; gap: 8px; }
+  .num-btn { width: 30px; height: 30px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
   .num-btn:hover { background: var(--fg); color: var(--bg); }
-  .num-val {
-    font-family: 'DM Mono', monospace;
-    font-size: 20px;
-    font-weight: 500;
-    min-width: 44px;
-    text-align: center;
-  }
+  .num-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; min-width: 44px; text-align: center; color: var(--fg); }
 
-  .timer-controls {
-    padding: 0 20px 16px;
-    display: flex;
-    gap: 8px;
-  }
-  .ctrl-btn {
-    flex: 1;
-    padding: 14px;
-    border: 1.5px solid var(--fg);
-    background: none;
-    cursor: pointer;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 3px;
-    transition: all 0.15s;
-  }
+  .timer-controls { padding: 0 20px 16px; display: flex; gap: 8px; }
+  .ctrl-btn { flex: 1; padding: 14px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; transition: all 0.15s; }
   .ctrl-btn.primary { background: var(--fg); color: var(--bg); }
   .ctrl-btn:hover:not(.primary) { background: var(--fg); color: var(--bg); }
-  .ctrl-btn.primary:hover { opacity: 0.85; }
 
-  .round-counter {
-    margin: 0 20px;
-    border: 1.5px solid var(--fg);
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .round-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--fg-muted);
-  }
-  .round-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    letter-spacing: 2px;
-    line-height: 1;
-  }
+  .round-counter { margin: 0 20px; border: 1.5px solid var(--fg); padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .round-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--fg-muted); }
+  .round-num { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; line-height: 1; }
   .round-controls { display: flex; gap: 8px; }
-  .round-btn {
-    width: 40px; height: 40px;
-    border: 1.5px solid var(--fg);
-    background: none;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s;
-  }
+  .round-btn { width: 40px; height: 40px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
   .round-btn:hover { background: var(--fg); color: var(--bg); }
 
-  .timer-active-label {
-    padding: 6px 20px 0;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--fg-muted);
-    text-align: center;
-    min-height: 20px;
-  }
+  .tabata-status { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; padding: 0 20px 10px; text-align: center; color: var(--fg-muted); }
+  .tabata-status.work { color: var(--danger); }
+  .tabata-status.rest { color: var(--success); }
 
   /* ── PR SCREEN ── */
-  .pr-add-area {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .pr-add-btn {
-    width: 100%;
-    padding: 12px;
-    border: 1.5px dashed var(--border-dark);
-    background: none;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    color: var(--fg-muted);
-    transition: all 0.15s;
-  }
+  .pr-add-area { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .pr-add-btn { width: 100%; padding: 12px; border: 1.5px dashed var(--border-dark); background: none; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; cursor: pointer; color: var(--fg-muted); transition: all 0.15s; }
   .pr-add-btn:hover { border-color: var(--fg); color: var(--fg); background: var(--surface); }
 
-  .pr-filters {
-    padding: 12px 20px;
-    display: flex;
-    gap: 6px;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-  }
-  .filter-btn {
-    padding: 5px 14px;
-    border: 1px solid var(--border);
-    background: none;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.12s;
-  }
+  .pr-filters { padding: 12px 20px; display: flex; gap: 6px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .filter-btn { padding: 5px 14px; border: 1px solid var(--border); color: var(--fg); background: none; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
   .filter-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 
-  .pr-list {
-    padding: 12px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .pr-card {
-    border: 1px solid var(--border);
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .pr-list { padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .pr-card { border: 1px solid var(--border); padding: 14px; display: flex; align-items: center; gap: 12px; }
   .pr-card-left { flex: 1; }
-  .pr-exercise {
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .pr-meta {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-    align-items: center;
-  }
-  .pr-date {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--fg-muted);
-  }
-  .pr-record {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 1px;
-    line-height: 1;
-    white-space: nowrap;
-  }
+  .pr-exercise { font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
+  .pr-meta { display: flex; gap: 10px; margin-top: 4px; align-items: center; }
+  .pr-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--fg-muted); }
+  .pr-record-wrap { text-align: right; }
+  .pr-record { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; line-height: 1; white-space: nowrap; }
+  .pr-unit { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--fg-muted); margin-left: 4px; }
 
-  /* ── TABATA INTERVAL labels ── */
-  .tabata-status {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 4px;
-    padding: 0 20px 10px;
-    text-align: center;
-    color: var(--fg-muted);
-  }
-  .tabata-status.work { color: var(--fg); }
-  .tabata-status.rest { color: var(--fg-muted); }
-
+  /* ── SETTINGS MODAL ── */
+  .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .btn-outline { padding: 8px 12px; border: 1.5px solid var(--border-dark); background: none; color: var(--fg); cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; transition: all 0.15s; }
+  .btn-outline:hover { background: var(--fg); color: var(--bg); }
+  textarea.import-area { font-family: monospace; font-size: 10px; width: 100%; height: 80px; margin-top: 10px; display: none; }
 </style>
 </head>
 <body>
 
-<!-- ══ SCREENS ══ -->
-
-<!-- CALENDAR -->
 <div class="screen active" id="screen-cal">
   <div class="app-header">
-    <div class="app-logo">WRKOUT</div>
-    <div class="app-date" id="header-date"></div>
+    <div class="header-left">
+      <div class="app-logo">WRKOUT</div>
+      <div class="app-date" id="header-date"></div>
+    </div>
+    <button class="settings-btn" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
   </div>
 
   <div class="cal-nav">
@@ -648,15 +291,12 @@
     <div class="cal-month" id="cal-month-label"></div>
     <button class="cal-nav-btn" onclick="changeMonth(1)">&#8594;</button>
   </div>
+  
+  <div class="monthly-stats" id="monthly-stats">
+    </div>
 
   <div class="cal-grid-header">
-    <div class="cal-day-label">SUN</div>
-    <div class="cal-day-label">MON</div>
-    <div class="cal-day-label">TUE</div>
-    <div class="cal-day-label">WED</div>
-    <div class="cal-day-label">THU</div>
-    <div class="cal-day-label">FRI</div>
-    <div class="cal-day-label">SAT</div>
+    <div class="cal-day-label">SUN</div><div class="cal-day-label">MON</div><div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div><div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div><div class="cal-day-label">SAT</div>
   </div>
   <div class="cal-grid" id="cal-grid"></div>
 
@@ -671,7 +311,6 @@
   </div>
 </div>
 
-<!-- TIMER -->
 <div class="screen" id="screen-timer">
   <div class="app-header">
     <div class="app-logo">TIMER</div>
@@ -692,9 +331,7 @@
 
   <div class="tabata-status" id="tabata-status"></div>
 
-  <div class="timer-settings" id="timer-settings">
-    <!-- dynamically rendered -->
-  </div>
+  <div class="timer-settings" id="timer-settings"></div>
 
   <div class="timer-controls">
     <button class="ctrl-btn primary" id="start-btn" onclick="toggleTimer()">START</button>
@@ -713,7 +350,6 @@
   </div>
 </div>
 
-<!-- PR -->
 <div class="screen" id="screen-pr">
   <div class="app-header">
     <div class="app-logo">PR</div>
@@ -734,31 +370,43 @@
   <div class="pr-list" id="pr-list"></div>
 </div>
 
-<!-- ══ BOTTOM NAV ══ -->
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="showScreen('cal', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-    CALENDAR
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>CALENDAR
   </button>
   <button class="nav-btn" onclick="showScreen('timer', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="9" y1="2" x2="15" y2="2"/></svg>
-    TIMER
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="9" y1="2" x2="15" y2="2"/></svg>TIMER
   </button>
   <button class="nav-btn" onclick="showScreen('pr', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-    PR
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>PR
   </button>
 </nav>
 
-<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-title">SETTINGS <button class="modal-close" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="settings-row">
+      <span class="form-label" style="margin:0;">DARK MODE</span>
+      <button class="btn-outline" id="theme-btn" onclick="toggleTheme()">TURN ON</button>
+    </div>
+    <div class="settings-row">
+      <span class="form-label" style="margin:0;">BACKUP DATA</span>
+      <button class="btn-outline" onclick="exportData()">EXPORT</button>
+    </div>
+    <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
+      <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+        <span class="form-label" style="margin:0;">RESTORE DATA</span>
+        <button class="btn-outline" onclick="showImportBox()">IMPORT</button>
+      </div>
+      <textarea id="import-data" class="form-textarea import-area" placeholder="Paste JSON data here..."></textarea>
+      <button id="import-submit" class="submit-btn" style="display:none; font-size:14px; padding:8px;" onclick="importData()">RESTORE NOW</button>
+    </div>
+  </div>
+</div>
 
-<!-- Workout Add Modal -->
 <div class="modal-overlay" id="workout-modal">
   <div class="modal">
-    <div class="modal-title">
-      ADD WORKOUT
-      <button class="modal-close" onclick="closeModal('workout-modal')">✕</button>
-    </div>
+    <div class="modal-title">ADD WORKOUT <button class="modal-close" onclick="closeModal('workout-modal')">✕</button></div>
     <div class="form-group">
       <label class="form-label">TYPE</label>
       <div class="type-selector">
@@ -767,25 +415,15 @@
         <button class="type-btn" id="type-lift" onclick="selectType('lifting')">LIFT</button>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">WORKOUT NAME</label>
-      <input class="form-input" id="wk-name" placeholder="e.g. Fran, 5K, Back Squat">
-    </div>
-    <div class="form-group">
-      <label class="form-label">NOTES / RX</label>
-      <textarea class="form-textarea" id="wk-note" placeholder="Weight, distance, details…"></textarea>
-    </div>
+    <div class="form-group"><label class="form-label">WORKOUT NAME</label><input class="form-input" id="wk-name" placeholder="e.g. Fran, 5K, Back Squat"></div>
+    <div class="form-group"><label class="form-label">NOTES / RX</label><textarea class="form-textarea" id="wk-note" placeholder="Weight, distance, details…"></textarea></div>
     <button class="submit-btn" onclick="addWorkout()">ADD WORKOUT</button>
   </div>
 </div>
 
-<!-- PR Add Modal -->
 <div class="modal-overlay" id="pr-modal">
   <div class="modal">
-    <div class="modal-title">
-      LOG PR
-      <button class="modal-close" onclick="closeModal('pr-modal')">✕</button>
-    </div>
+    <div class="modal-title">LOG PR <button class="modal-close" onclick="closeModal('pr-modal')">✕</button></div>
     <div class="form-group">
       <label class="form-label">TYPE</label>
       <div class="type-selector">
@@ -794,17 +432,16 @@
         <button class="type-btn" id="pr-type-lift" onclick="selectPRType('lifting')">LIFT</button>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">EXERCISE</label>
-      <input class="form-input" id="pr-exercise" placeholder="e.g. Clean & Jerk, 1 Mile, Snatch">
-    </div>
-    <div class="form-group">
-      <label class="form-label">DATE</label>
-      <input class="form-input" type="date" id="pr-date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">RECORD (e.g. 100kg / 4:32 / 21-15-9)</label>
-      <input class="form-input" id="pr-record" placeholder="Enter your PR">
+    <div class="form-group"><label class="form-label">EXERCISE</label><input class="form-input" id="pr-exercise" placeholder="e.g. Clean & Jerk, 1 Mile"></div>
+    <div class="form-group"><label class="form-label">DATE</label><input class="form-input" type="date" id="pr-date"></div>
+    <div class="form-group" style="display:flex; gap:10px;">
+      <div style="flex:2;"><label class="form-label">RECORD</label><input class="form-input" id="pr-record" placeholder="e.g. 100 / 4:32"></div>
+      <div style="flex:1;"><label class="form-label">UNIT</label>
+        <select class="form-select" id="pr-unit">
+          <option value="KG">KG</option><option value="LBS">LBS</option>
+          <option value="TIME">TIME</option><option value="REPS">REPS</option>
+        </select>
+      </div>
     </div>
     <button class="submit-btn" onclick="addPR()">SAVE PR</button>
   </div>
@@ -812,16 +449,51 @@
 
 <script>
 // ═══════════════════════════════════
-//  STATE
+//  STATE & THEME
 // ═══════════════════════════════════
 let state = {
   workouts: JSON.parse(localStorage.getItem('wrkout-workouts') || '{}'),
   prs: JSON.parse(localStorage.getItem('wrkout-prs') || '[]'),
 };
+let isDark = localStorage.getItem('wrkout-theme') === 'dark';
+if (isDark) document.body.classList.add('dark-theme');
 
 function saveState() {
   localStorage.setItem('wrkout-workouts', JSON.stringify(state.workouts));
   localStorage.setItem('wrkout-prs', JSON.stringify(state.prs));
+}
+
+// ═══════════════════════════════════
+//  SETTINGS & DATA MANAGEMENT
+// ═══════════════════════════════════
+function openSettings() {
+  document.getElementById('theme-btn').textContent = isDark ? 'TURN OFF' : 'TURN ON';
+  document.getElementById('import-data').style.display = 'none';
+  document.getElementById('import-submit').style.display = 'none';
+  document.getElementById('import-data').value = '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark-theme', isDark);
+  localStorage.setItem('wrkout-theme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-btn').textContent = isDark ? 'TURN OFF' : 'TURN ON';
+}
+function exportData() {
+  const dataStr = JSON.stringify(state);
+  navigator.clipboard.writeText(dataStr).then(() => alert('Data copied to clipboard! Save it somewhere safe.'));
+}
+function showImportBox() {
+  document.getElementById('import-data').style.display = 'block';
+  document.getElementById('import-submit').style.display = 'block';
+}
+function importData() {
+  try {
+    const imported = JSON.parse(document.getElementById('import-data').value);
+    if(imported.workouts && imported.prs) {
+      state = imported; saveState(); location.reload();
+    } else alert('Invalid Data Format');
+  } catch(e) { alert('Failed to parse JSON'); }
 }
 
 // ═══════════════════════════════════
@@ -837,29 +509,18 @@ function showScreen(id, btn) {
 }
 
 // ═══════════════════════════════════
-//  CALENDAR
+//  CALENDAR & STATS
 // ═══════════════════════════════════
 let calYear, calMonth, selectedDate;
 
 function initCal() {
-  const now = new Date();
-  calYear = now.getFullYear();
-  calMonth = now.getMonth();
-  selectedDate = dateKey(now);
-  document.getElementById('header-date').textContent =
-    now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }).toUpperCase();
-  renderCal();
-  renderDayDetail();
+  const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); selectedDate = dateKey(now);
+  document.getElementById('header-date').textContent = now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }).toUpperCase();
+  renderCal(); renderDayDetail();
 }
-
-function dateKey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function changeMonth(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; }
   renderCal();
 }
 
@@ -867,127 +528,77 @@ function renderCal() {
   const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
 
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
-
+  const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
   const first = new Date(calYear, calMonth, 1).getDay();
   const days = new Date(calYear, calMonth+1, 0).getDate();
   const today = dateKey(new Date());
   const prDates = new Set(state.prs.map(p => p.date));
 
-  // prev month fill
-  const prevDays = new Date(calYear, calMonth, 0).getDate();
-  for (let i = first-1; i >= 0; i--) {
-    const d = new Date(calYear, calMonth-1, prevDays-i);
-    grid.appendChild(makeCell(d, true, today, prDates));
-  }
+  // Update Monthly Stats
+  let counts = { cf:0, run:0, lift:0 };
   for (let d = 1; d <= days; d++) {
-    const date = new Date(calYear, calMonth, d);
-    grid.appendChild(makeCell(date, false, today, prDates));
+    const k = dateKey(new Date(calYear, calMonth, d));
+    if(state.workouts[k]) state.workouts[k].forEach(w => {
+      if(w.type === 'crossfit') counts.cf++; else if(w.type === 'run') counts.run++; else counts.lift++;
+    });
   }
-  // fill remaining
-  const total = grid.children.length;
-  const remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= remainder; d++) {
-    const date = new Date(calYear, calMonth+1, d);
-    grid.appendChild(makeCell(date, true, today, prDates));
-  }
+  document.getElementById('monthly-stats').innerHTML = `
+    <div class="stat-item"><div class="stat-dot dot-cf"></div>CF: ${counts.cf}</div>
+    <div class="stat-item"><div class="stat-dot dot-run"></div>RUN: ${counts.run}</div>
+    <div class="stat-item"><div class="stat-dot dot-lift"></div>LIFT: ${counts.lift}</div>
+  `;
+
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  for (let i = first-1; i >= 0; i--) grid.appendChild(makeCell(new Date(calYear, calMonth-1, prevDays-i), true, today, prDates));
+  for (let d = 1; d <= days; d++) grid.appendChild(makeCell(new Date(calYear, calMonth, d), false, today, prDates));
+  const remainder = grid.children.length % 7 === 0 ? 0 : 7 - (grid.children.length % 7);
+  for (let d = 1; d <= remainder; d++) grid.appendChild(makeCell(new Date(calYear, calMonth+1, d), true, today, prDates));
 }
 
 function makeCell(date, otherMonth, today, prDates) {
-  const key = dateKey(date);
-  const workouts = state.workouts[key] || [];
+  const key = dateKey(date); const workouts = state.workouts[key] || [];
   const cell = document.createElement('div');
-  cell.className = 'cal-cell' +
-    (otherMonth ? ' other-month' : '') +
-    (key === today ? ' today' : '') +
-    (key === selectedDate ? ' selected' : '');
-
-  const num = document.createElement('div');
-  num.className = 'cell-num';
-  num.textContent = date.getDate();
-  cell.appendChild(num);
-
+  cell.className = 'cal-cell' + (otherMonth ? ' other-month' : '') + (key === today ? ' today' : '') + (key === selectedDate ? ' selected' : '');
+  cell.innerHTML = `<div class="cell-num">${date.getDate()}</div>`;
+  
   if (workouts.length > 0) {
-    const dots = document.createElement('div');
-    dots.className = 'cell-dots';
-    const types = [...new Set(workouts.map(w => w.type))];
-    types.forEach(t => {
+    const dots = document.createElement('div'); dots.className = 'cell-dots';
+    [...new Set(workouts.map(w => w.type))].forEach(t => {
       const dot = document.createElement('div');
       dot.className = 'cell-dot ' + (t === 'crossfit' ? 'dot-cf' : t === 'run' ? 'dot-run' : 'dot-lift');
       dots.appendChild(dot);
     });
     cell.appendChild(dots);
   }
-
   if (prDates.has(key)) cell.classList.add('has-pr');
-
-  cell.onclick = () => {
-    selectedDate = key;
-    renderCal();
-    renderDayDetail();
-  };
+  cell.onclick = () => { selectedDate = key; renderCal(); renderDayDetail(); };
   return cell;
 }
 
 function renderDayDetail() {
   if (!selectedDate) return;
   const [y,m,d] = selectedDate.split('-');
-  const date = new Date(+y, +m-1, +d);
-  document.getElementById('detail-date-label').textContent =
-    date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
-
-  const list = document.getElementById('workout-list');
-  const workouts = state.workouts[selectedDate] || [];
-  if (workouts.length === 0) {
-    list.innerHTML = '<div class="empty-state">NO WORKOUT LOGGED</div>';
-    return;
-  }
+  document.getElementById('detail-date-label').textContent = new Date(+y, +m-1, +d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+  const list = document.getElementById('workout-list'); const workouts = state.workouts[selectedDate] || [];
+  if (workouts.length === 0) { list.innerHTML = '<div class="empty-state">NO WORKOUT LOGGED</div>'; return; }
   list.innerHTML = '';
   workouts.forEach((w, idx) => {
-    const card = document.createElement('div');
-    card.className = 'workout-card';
-
-    const badge = document.createElement('div');
-    badge.className = 'workout-type-badge ' + (w.type==='crossfit'?'badge-cf':w.type==='run'?'badge-run':'badge-lift');
-    badge.textContent = w.type === 'crossfit' ? 'CF' : w.type === 'run' ? 'RUN' : 'LIFT';
-
-    const info = document.createElement('div');
-    info.className = 'workout-info';
-    info.innerHTML = `<div class="workout-name">${w.name}</div>${w.note ? `<div class="workout-note">${w.note}</div>` : ''}`;
-
-    const toggle = document.createElement('button');
-    toggle.className = 'done-toggle' + (w.done ? ' done' : '');
-    toggle.innerHTML = w.done ? '✓' : '';
-    toggle.onclick = () => {
-      state.workouts[selectedDate][idx].done = !state.workouts[selectedDate][idx].done;
-      saveState(); renderCal(); renderDayDetail();
-    };
-
-    const del = document.createElement('button');
-    del.className = 'delete-btn';
-    del.innerHTML = '✕';
-    del.onclick = () => {
-      state.workouts[selectedDate].splice(idx, 1);
-      if (!state.workouts[selectedDate].length) delete state.workouts[selectedDate];
-      saveState(); renderCal(); renderDayDetail();
-    };
-
-    card.appendChild(badge);
-    card.appendChild(info);
-    card.appendChild(toggle);
-    card.appendChild(del);
+    const card = document.createElement('div'); card.className = 'workout-card';
+    card.innerHTML = `
+      <div class="workout-type-badge ${w.type==='crossfit'?'badge-cf':w.type==='run'?'badge-run':'badge-lift'}">${w.type==='crossfit'?'CF':w.type==='run'?'RUN':'LIFT'}</div>
+      <div class="workout-info"><div class="workout-name">${w.name}</div>${w.note ? `<div class="workout-note">${w.note}</div>` : ''}</div>
+      <button class="done-toggle ${w.done ? 'done' : ''}" onclick="toggleDone(${idx})">${w.done ? '✓' : ''}</button>
+      <button class="delete-btn" onclick="delWorkout(${idx})">✕</button>
+    `;
     list.appendChild(card);
   });
 }
+function toggleDone(idx) { state.workouts[selectedDate][idx].done = !state.workouts[selectedDate][idx].done; saveState(); renderCal(); renderDayDetail(); }
+function delWorkout(idx) { state.workouts[selectedDate].splice(idx, 1); if (!state.workouts[selectedDate].length) delete state.workouts[selectedDate]; saveState(); renderCal(); renderDayDetail(); }
 
-// Workout Modal
 let selectedType = null;
 function openWorkoutModal() {
-  if (!selectedDate) return;
-  selectedType = null;
-  document.getElementById('wk-name').value = '';
-  document.getElementById('wk-note').value = '';
+  selectedType = null; document.getElementById('wk-name').value = ''; document.getElementById('wk-note').value = '';
   ['cf','run','lift'].forEach(t => document.getElementById('type-'+t).className = 'type-btn');
   document.getElementById('workout-modal').classList.add('open');
 }
@@ -1002,272 +613,141 @@ function addWorkout() {
   if (!selectedType || !name) return;
   if (!state.workouts[selectedDate]) state.workouts[selectedDate] = [];
   state.workouts[selectedDate].push({ type: selectedType, name, note: document.getElementById('wk-note').value.trim(), done: false });
-  saveState();
-  closeModal('workout-modal');
-  renderCal();
-  renderDayDetail();
+  saveState(); closeModal('workout-modal'); renderCal(); renderDayDetail();
 }
+
+// ═══════════════════════════════════
+//  AUDIO & WAKELOCK 
+// ═══════════════════════════════════
+let audioCtx;
+function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
+function playBeep(type) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = 'sine'; osc.frequency.value = type === 'high' ? 880 : 440;
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (type === 'high' ? 0.5 : 0.15));
+  osc.stop(audioCtx.currentTime + (type === 'high' ? 0.5 : 0.15));
+}
+
+let wakeLock = null;
+async function requestWakeLock() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
+function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release(); wakeLock = null; } }
 
 // ═══════════════════════════════════
 //  TIMER
 // ═══════════════════════════════════
-let timerMode = 'timecap';
-let timerInterval = null;
-let timerRunning = false;
-let timerSeconds = 0;
-let timerTotalSeconds = 0;
-let roundCount = 0;
-
-// EMOM / TABATA state
-let emomInterval = 60;
-let emomRounds = 10;
-let emomCurrentRound = 0;
-let emomRoundSeconds = 0;
-
-let tabataWork = 20;
-let tabataRest = 10;
-let tabataRounds = 8;
-let tabataCurrentRound = 0;
-let tabataPhase = 'work';
-let tabataSeconds = 0;
-
-// TIME CAP / FOR TIME / AMRAP settings (shared min/sec input)
-let capMinutes = 10;
-let capSeconds2 = 0;
+let timerMode = 'timecap'; let timerInterval = null; let timerRunning = false; let timerStarted = false; let timerSeconds = 0; let timerTotalSeconds = 0; let roundCount = 0;
+let emomInterval = 60; let emomRounds = 10; let emomCurrentRound = 0; let emomRoundSeconds = 0;
+let tabataWork = 20; let tabataRest = 10; let tabataRounds = 8; let tabataCurrentRound = 0; let tabataPhase = 'work'; let tabataSeconds = 0;
+let capMinutes = 10; let capSeconds2 = 0;
 
 function setTimerMode(mode, btn) {
-  timerMode = mode;
-  document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  resetTimer();
-  renderTimerSettings();
+  timerMode = mode; document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); resetTimer(); renderTimerSettings();
 }
-
 function renderTimerSettings() {
-  const s = document.getElementById('timer-settings');
-  document.getElementById('tabata-status').textContent = '';
-
-  if (timerMode === 'timecap') {
-    s.innerHTML = `
-      ${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}
-      ${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}
-    `;
-    document.getElementById('timer-sub-label').textContent = 'COUNTDOWN · STOPS AT ZERO';
+  const s = document.getElementById('timer-settings'); document.getElementById('tabata-status').textContent = '';
+  if (timerMode === 'timecap' || timerMode === 'amrap') {
+    s.innerHTML = `${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}`;
+    document.getElementById('timer-sub-label').textContent = timerMode==='timecap' ? 'COUNTDOWN · STOPS AT ZERO' : 'AS MANY ROUNDS AS POSSIBLE';
   } else if (timerMode === 'fortime') {
-    s.innerHTML = `
-      ${numRow('CAP MIN', capMinutes, 'capMinutes', 0, 99)}
-      ${numRow('CAP SEC', capSeconds2, 'capSeconds2', 0, 59)}
-    `;
+    s.innerHTML = `${numRow('CAP MIN', capMinutes, 'capMinutes', 0, 99)}${numRow('CAP SEC', capSeconds2, 'capSeconds2', 0, 59)}`;
     document.getElementById('timer-sub-label').textContent = 'COUNT UP · TAP STOP WHEN DONE';
-  } else if (timerMode === 'amrap') {
-    s.innerHTML = `
-      ${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}
-      ${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}
-    `;
-    document.getElementById('timer-sub-label').textContent = 'AS MANY ROUNDS AS POSSIBLE';
   } else if (timerMode === 'emom') {
-    s.innerHTML = `
-      ${numRow('INTERVAL (sec)', emomInterval, 'emomInterval', 10, 300)}
-      ${numRow('ROUNDS', emomRounds, 'emomRounds', 1, 60)}
-    `;
+    s.innerHTML = `${numRow('INTERVAL (sec)', emomInterval, 'emomInterval', 10, 300)}${numRow('ROUNDS', emomRounds, 'emomRounds', 1, 60)}`;
     document.getElementById('timer-sub-label').textContent = 'EVERY MINUTE ON THE MINUTE';
   } else if (timerMode === 'tabata') {
-    s.innerHTML = `
-      ${numRow('WORK (sec)', tabataWork, 'tabataWork', 5, 60)}
-      ${numRow('REST (sec)', tabataRest, 'tabataRest', 5, 60)}
-      ${numRow('ROUNDS', tabataRounds, 'tabataRounds', 1, 30)}
-    `;
+    s.innerHTML = `${numRow('WORK (sec)', tabataWork, 'tabataWork', 5, 60)}${numRow('REST (sec)', tabataRest, 'tabataRest', 5, 60)}${numRow('ROUNDS', tabataRounds, 'tabataRounds', 1, 30)}`;
     document.getElementById('timer-sub-label').textContent = 'WORK / REST';
   }
-  bindNumInputs();
 }
-
 function numRow(label, val, key, min, max) {
-  return `<div class="timer-row">
-    <div class="timer-row-label">${label}</div>
-    <div class="num-input-group">
-      <button class="num-btn" onclick="adjustNum('${key}', -1, ${min}, ${max})">−</button>
-      <div class="num-val" id="num-${key}">${String(val).padStart(2,'0')}</div>
-      <button class="num-btn" onclick="adjustNum('${key}', 1, ${min}, ${max})">+</button>
-    </div>
-  </div>`;
+  return `<div class="timer-row"><div class="timer-row-label">${label}</div><div class="num-input-group">
+    <button class="num-btn" onclick="adjustNum('${key}', -1, ${min}, ${max})">−</button><div class="num-val" id="num-${key}">${String(val).padStart(2,'0')}</div><button class="num-btn" onclick="adjustNum('${key}', 1, ${min}, ${max})">+</button>
+  </div></div>`;
 }
-
-function bindNumInputs() {} // using onclick inline
-
 function adjustNum(key, dir, min, max) {
   const map = { capMinutes, capSeconds2, emomInterval, emomRounds, tabataWork, tabataRest, tabataRounds };
-  let val = map[key] + dir;
-  if (val < min) val = min;
-  if (val > max) val = max;
-  if (key === 'capMinutes') capMinutes = val;
-  if (key === 'capSeconds2') capSeconds2 = val;
-  if (key === 'emomInterval') emomInterval = val;
-  if (key === 'emomRounds') emomRounds = val;
-  if (key === 'tabataWork') tabataWork = val;
-  if (key === 'tabataRest') tabataRest = val;
-  if (key === 'tabataRounds') tabataRounds = val;
-  const el = document.getElementById('num-'+key);
-  if (el) el.textContent = String(val).padStart(2,'0');
+  let val = map[key] + dir; if (val < min) val = min; if (val > max) val = max;
+  eval(`${key} = ${val}`);
+  document.getElementById('num-'+key).textContent = String(val).padStart(2,'0');
 }
 
-let timerStarted = false;
-
 function toggleTimer() {
+  initAudio(); // Audio Context 시작
   if (timerRunning) {
-    clearInterval(timerInterval);
-    timerRunning = false;
+    clearInterval(timerInterval); timerRunning = false; releaseWakeLock();
     document.getElementById('start-btn').textContent = 'RESUME';
   } else {
+    requestWakeLock(); // 화면 안꺼지게 유지
     if (!timerStarted) { initTimerValues(); timerStarted = true; }
-    timerRunning = true;
-    document.getElementById('start-btn').textContent = 'PAUSE';
-    if (timerMode === 'timecap' || timerMode === 'amrap') {
-      timerInterval = setInterval(tickCountdown, 1000);
-    } else if (timerMode === 'fortime') {
-      timerInterval = setInterval(tickCountup, 1000);
-    } else if (timerMode === 'emom') {
-      timerInterval = setInterval(tickEmom, 1000);
-    } else if (timerMode === 'tabata') {
-      timerInterval = setInterval(tickTabata, 1000);
-    }
+    timerRunning = true; document.getElementById('start-btn').textContent = 'PAUSE';
+    if (timerMode === 'timecap' || timerMode === 'amrap') timerInterval = setInterval(tickCountdown, 1000);
+    else if (timerMode === 'fortime') timerInterval = setInterval(tickCountup, 1000);
+    else if (timerMode === 'emom') timerInterval = setInterval(tickEmom, 1000);
+    else if (timerMode === 'tabata') timerInterval = setInterval(tickTabata, 1000);
   }
 }
 
 function initTimerValues() {
   if (timerMode === 'timecap' || timerMode === 'amrap') {
-    timerSeconds = capMinutes * 60 + capSeconds2;
-    timerTotalSeconds = timerSeconds;
-    updateFace(timerSeconds);
-    document.getElementById('timer-sub-label').textContent =
-      timerMode === 'amrap' ? 'AS MANY ROUNDS AS POSSIBLE' : 'COUNTDOWN · STOPS AT ZERO';
-  } else if (timerMode === 'fortime') {
-    timerSeconds = 0;
-    timerTotalSeconds = capMinutes * 60 + capSeconds2; // cap limit
-    updateFace(0);
-    document.getElementById('timer-sub-label').textContent = 'COUNT UP · TAP STOP WHEN DONE';
-  } else if (timerMode === 'emom') {
-    emomCurrentRound = 1;
-    emomRoundSeconds = emomInterval;
-    updateFace(emomRoundSeconds);
-    document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
-  } else if (timerMode === 'tabata') {
-    tabataCurrentRound = 1;
-    tabataPhase = 'work';
-    tabataSeconds = tabataWork;
-    updateFace(tabataSeconds);
-    setTabataStatus('WORK');
-    document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`;
-  }
+    timerSeconds = capMinutes * 60 + capSeconds2; timerTotalSeconds = timerSeconds; updateFace(timerSeconds);
+  } else if (timerMode === 'fortime') { timerSeconds = 0; timerTotalSeconds = capMinutes * 60 + capSeconds2; updateFace(0); } 
+  else if (timerMode === 'emom') { emomCurrentRound = 1; emomRoundSeconds = emomInterval; updateFace(emomRoundSeconds); document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`; } 
+  else if (timerMode === 'tabata') { tabataCurrentRound = 1; tabataPhase = 'work'; tabataSeconds = tabataWork; updateFace(tabataSeconds); setTabataStatus('WORK'); document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`; }
 }
 
 function tickCountdown() {
-  timerSeconds--;
-  if (timerSeconds <= 0) {
-    timerSeconds = 0;
-    updateFace(0);
-    endTimer('TIME!');
-    return;
-  }
+  timerSeconds--; 
+  if(timerSeconds <= 3 && timerSeconds > 0) playBeep('low');
+  if (timerSeconds <= 0) { timerSeconds = 0; updateFace(0); endTimer('TIME!'); playBeep('high'); return; }
   updateFace(timerSeconds);
 }
-
 function tickCountup() {
-  timerSeconds++;
-  updateFace(timerSeconds);
-  // stop at cap if set
-  if (timerTotalSeconds > 0 && timerSeconds >= timerTotalSeconds) {
-    endTimer('TIME CAP!');
-  }
+  timerSeconds++; updateFace(timerSeconds);
+  if (timerTotalSeconds > 0 && timerSeconds >= timerTotalSeconds) { endTimer('CAP!'); playBeep('high'); }
 }
-
 function tickEmom() {
   emomRoundSeconds--;
+  if(emomRoundSeconds <= 3 && emomRoundSeconds > 0) playBeep('low');
   if (emomRoundSeconds <= 0) {
-    emomCurrentRound++;
+    playBeep('high'); emomCurrentRound++;
     if (emomCurrentRound > emomRounds) { endTimer('DONE!'); return; }
-    emomRoundSeconds = emomInterval;
-    document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
+    emomRoundSeconds = emomInterval; document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
   }
   updateFace(emomRoundSeconds);
 }
-
 function tickTabata() {
   tabataSeconds--;
+  if(tabataSeconds <= 3 && tabataSeconds > 0) playBeep('low');
   if (tabataSeconds <= 0) {
-    if (tabataPhase === 'work') {
-      tabataPhase = 'rest';
-      tabataSeconds = tabataRest;
-      setTabataStatus('REST');
-    } else {
+    playBeep('high');
+    if (tabataPhase === 'work') { tabataPhase = 'rest'; tabataSeconds = tabataRest; setTabataStatus('REST'); } 
+    else {
       tabataCurrentRound++;
       if (tabataCurrentRound > tabataRounds) { endTimer('DONE!'); return; }
-      tabataPhase = 'work';
-      tabataSeconds = tabataWork;
-      setTabataStatus('WORK');
+      tabataPhase = 'work'; tabataSeconds = tabataWork; setTabataStatus('WORK');
       document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`;
-      roundCount++;
-      document.getElementById('round-display').textContent = roundCount;
+      roundCount++; document.getElementById('round-display').textContent = roundCount;
     }
   }
   updateFace(tabataSeconds);
 }
 
-function setTabataStatus(label) {
-  const el = document.getElementById('tabata-status');
-  el.textContent = label;
-  el.className = 'tabata-status ' + label.toLowerCase();
-}
-
-function updateFace(secs) {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  document.getElementById('timer-face').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-
-function endTimer(msg) {
-  clearInterval(timerInterval);
-  timerRunning = false;
-  timerStarted = false;
-  document.getElementById('start-btn').textContent = 'START';
-  document.getElementById('timer-face').textContent = msg;
-  timerSeconds = 0; emomRoundSeconds = 0; tabataSeconds = 0;
-}
-
-function resetTimer() {
-  clearInterval(timerInterval);
-  timerRunning = false;
-  timerStarted = false;
-  timerSeconds = 0; emomRoundSeconds = 0; tabataSeconds = 0;
-  emomCurrentRound = 0; tabataCurrentRound = 0;
-  document.getElementById('start-btn').textContent = 'START';
-  document.getElementById('timer-face').textContent = '00:00';
-  const labels = {
-    timecap: 'COUNTDOWN · STOPS AT ZERO',
-    fortime: 'COUNT UP · TAP STOP WHEN DONE',
-    amrap: 'AS MANY ROUNDS AS POSSIBLE',
-    emom: 'EVERY MINUTE ON THE MINUTE',
-    tabata: 'WORK / REST'
-  };
-  document.getElementById('timer-sub-label').textContent = labels[timerMode] || 'SET TIME AND START';
-  document.getElementById('tabata-status').textContent = '';
-}
-
-function adjustRound(dir) {
-  roundCount = Math.max(0, roundCount + dir);
-  document.getElementById('round-display').textContent = roundCount;
-}
+function setTabataStatus(label) { const el = document.getElementById('tabata-status'); el.textContent = label; el.className = 'tabata-status ' + label.toLowerCase(); }
+function updateFace(secs) { document.getElementById('timer-face').textContent = `${String(Math.floor(secs / 60)).padStart(2,'0')}:${String(secs % 60).padStart(2,'0')}`; }
+function endTimer(msg) { clearInterval(timerInterval); timerRunning = false; timerStarted = false; releaseWakeLock(); document.getElementById('start-btn').textContent = 'START'; document.getElementById('timer-face').textContent = msg; timerSeconds = 0; }
+function resetTimer() { endTimer('00:00'); renderTimerSettings(); roundCount = 0; document.getElementById('round-display').textContent = 0; }
+function adjustRound(dir) { roundCount = Math.max(0, roundCount + dir); document.getElementById('round-display').textContent = roundCount; }
 
 // ═══════════════════════════════════
 //  PR
 // ═══════════════════════════════════
-let selectedPRType = null;
-let prFilter = 'all';
+let selectedPRType = null; let prFilter = 'all';
 
 function openPRModal() {
-  selectedPRType = null;
-  document.getElementById('pr-exercise').value = '';
-  document.getElementById('pr-record').value = '';
+  selectedPRType = null; document.getElementById('pr-exercise').value = ''; document.getElementById('pr-record').value = '';
   document.getElementById('pr-date').value = new Date().toISOString().slice(0,10);
   ['cf','run','lift'].forEach(t => document.getElementById('pr-type-'+t).className = 'type-btn');
   document.getElementById('pr-modal').classList.add('open');
@@ -1279,76 +759,45 @@ function selectPRType(type) {
   document.getElementById('pr-type-lift').className = 'type-btn' + (type==='lifting' ? ' active-lift' : '');
 }
 function addPR() {
-  const exercise = document.getElementById('pr-exercise').value.trim();
-  const date = document.getElementById('pr-date').value;
-  const record = document.getElementById('pr-record').value.trim();
+  const exercise = document.getElementById('pr-exercise').value.trim(); const date = document.getElementById('pr-date').value;
+  const record = document.getElementById('pr-record').value.trim(); const unit = document.getElementById('pr-unit').value;
   if (!selectedPRType || !exercise || !date || !record) return;
-  state.prs.push({ type: selectedPRType, exercise, date, record });
-  state.prs.sort((a,b) => b.date.localeCompare(a.date));
-  saveState();
-  closeModal('pr-modal');
-  renderPR();
-  renderCal(); // update PR markers on calendar
+  state.prs.push({ type: selectedPRType, exercise, date, record, unit });
+  state.prs.sort((a,b) => b.date.localeCompare(a.date)); // 최신순 정렬 (자연스러운 히스토리 보기)
+  saveState(); closeModal('pr-modal'); renderPR(); renderCal(); 
 }
-function filterPR(type, btn) {
-  prFilter = type;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderPR();
-}
+function filterPR(type, btn) { prFilter = type; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderPR(); }
 function renderPR() {
-  const list = document.getElementById('pr-list');
-  const prs = prFilter === 'all' ? state.prs : state.prs.filter(p => p.type === prFilter);
-  if (prs.length === 0) {
-    list.innerHTML = '<div class="empty-state" style="padding:30px 0">NO PR RECORDS YET</div>';
-    return;
-  }
+  const list = document.getElementById('pr-list'); const prs = prFilter === 'all' ? state.prs : state.prs.filter(p => p.type === prFilter);
+  if (prs.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:30px 0">NO PR RECORDS YET</div>'; return; }
   list.innerHTML = '';
   prs.forEach((pr, idx) => {
-    const card = document.createElement('div');
-    card.className = 'pr-card';
+    const card = document.createElement('div'); card.className = 'pr-card';
     const realIdx = state.prs.indexOf(pr);
     card.innerHTML = `
       <div class="pr-card-left">
         <div class="pr-exercise">${pr.exercise}</div>
         <div class="pr-meta">
-          <div class="workout-type-badge ${pr.type==='crossfit'?'badge-cf':pr.type==='run'?'badge-run':'badge-lift'}" style="font-size:8px;padding:2px 6px">
-            ${pr.type==='crossfit'?'CF':pr.type==='run'?'RUN':'LIFT'}
-          </div>
+          <div class="workout-type-badge ${pr.type==='crossfit'?'badge-cf':pr.type==='run'?'badge-run':'badge-lift'}" style="font-size:8px;padding:2px 6px">${pr.type==='crossfit'?'CF':pr.type==='run'?'RUN':'LIFT'}</div>
           <div class="pr-date">${pr.date}</div>
         </div>
       </div>
-      <div class="pr-record">${pr.record}</div>
+      <div class="pr-record-wrap"><span class="pr-record">${pr.record}</span><span class="pr-unit">${pr.unit || ''}</span></div>
       <button class="delete-btn" onclick="deletePR(${realIdx})">✕</button>
     `;
     list.appendChild(card);
   });
 }
-function deletePR(idx) {
-  state.prs.splice(idx, 1);
-  saveState();
-  renderPR();
-  renderCal();
-}
+function deletePR(idx) { state.prs.splice(idx, 1); saveState(); renderPR(); renderCal(); }
 
 // ═══════════════════════════════════
-//  MODALS
+//  MODALS INIT
 // ═══════════════════════════════════
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === this) closeModal(this.id);
-  });
-});
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); }); });
 
-// ═══════════════════════════════════
-//  INIT
-// ═══════════════════════════════════
-initCal();
-renderTimerSettings();
-renderPR();
+// INIT
+initCal(); renderTimerSettings(); renderPR();
 </script>
 </body>
 </html>
