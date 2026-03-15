@@ -1,493 +1,1354 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WODiary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        :root {
-            --bg-color: #121212; --surface-color: #1e1e1e; --surface-hover: #2c2c2c;
-            --primary-color: #FF3B30; --text-main: #ffffff; --text-sub: #aaaaaa;
-            --border-color: #333333; --rest-color: #4caf50; --rest-bg: #1b3320;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRKOUT</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #0a0a0a;
+    --fg-muted: #666666;
+    --fg-faint: #cccccc;
+    --border: #e0e0e0;
+    --border-dark: #333333;
+    --accent: #0a0a0a;
+    --surface: #f7f7f7;
+    --danger: #cc0000;
+    --success: #006600;
+  }
 
-        body { margin: 0; font-family: 'Montserrat', -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-color); color: var(--text-main); }
-        header { background-color: #000000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; font-weight: 900; letter-spacing: -0.5px; border-bottom: 1px solid var(--border-color); }
-        header .header-title img { height: 1.8rem; width: auto; border-radius: 50%; vertical-align: middle; margin-right: 8px; }
-        .header-title { display: flex; align-items: center; color: var(--primary-color); }
-        .header-buttons { display: flex; gap: 10px; }
-        .btn-header { background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; font-weight: bold; font-family: 'Montserrat'; display:flex; align-items:center; gap:4px;}
-        .btn-header:active { transform: scale(0.95); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        main { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
 
-        /* 로그인 오버레이 */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; transition: opacity 0.5s, visibility 0.5s; }
-        #login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .login-title { font-size: 3.5rem; font-weight: 900; color: var(--primary-color); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .login-desc { color: var(--text-sub); margin-bottom: 40px; font-size: 1rem; }
-        .login-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 15px; }
-        .login-form input { padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--surface-color); color: white; font-size: 1rem; font-family: 'Montserrat'; }
-        .btn-login { background: var(--primary-color); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
-        .btn-login:active { transform: scale(0.98); }
-        .btn-signup { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    animation: fadeIn 0.18s ease;
+  }
+  .screen.active { display: block; }
 
-        /* 공통 UI */
-        .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
-        .btn-action { background: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; font-weight: bold; }
-        
-        /* 대시보드 */
-        .stats-container { display: flex; gap: 12px; margin-bottom: 25px; }
-        .stat-card { background: var(--surface-color); flex: 1; padding: 20px; border-radius: 16px; text-align: center; border: 1px solid var(--border-color); }
-        .stat-value { font-size: 2.2rem; font-weight: 900; color: var(--primary-color); }
-        .stat-value.rest { color: var(--rest-color); }
-        .stat-label { font-size: 0.85rem; color: var(--text-sub); margin-top: 5px; font-weight: 600; }
-        
-        /* 달력 */
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 1.3rem; font-weight: 800; }
-        .calendar-header button { background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
-        .day-name { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 5px; font-weight: 600; }
-        .calendar-day { background: var(--surface-color); padding: 15px 0; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 600; position: relative; height: 30px; display: flex; justify-content: center; align-items: center; border: 1px solid transparent; }
-        .calendar-day.empty { background: transparent; box-shadow: none; cursor: default; }
-        .calendar-day.today { border: 2px solid var(--primary-color); color: var(--primary-color); }
-        .has-record::after { content: ''; display: block; width: 6px; height: 6px; background-color: var(--primary-color); border-radius: 50%; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
-        .has-plan::after { content: ''; display: block; width: 6px; height: 6px; border: 2px solid var(--primary-color); box-sizing: border-box; border-radius: 50%; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
-        .calendar-day.is-rest { background-color: var(--rest-bg); border: 1px solid var(--rest-color); color: var(--rest-color); }
-        .day-sticker { position: absolute; bottom: 2px; font-size: 1rem; color: #ffeb3b; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PR UI */
-        .calc-card { background: var(--surface-color); padding: 20px; border-radius: 16px; margin-bottom: 25px; border-top: 4px solid var(--primary-color);}
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; font-size: 0.95rem; font-weight: bold;}
-        .calc-grid div { background: var(--bg-color); padding: 10px 0; border-radius: 8px; border: 1px solid var(--border-color);}
-        .pr-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
-        .pr-item-content { flex: 1; cursor: pointer; }
-        .pr-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 4px;}
-        .pr-record-val { color: var(--primary-color); font-size: 1.25rem; }
-        .pr-date { font-size: 0.8rem; color: var(--text-sub); }
+  /* ── HEADER ── */
+  .app-header {
+    padding: 20px 20px 10px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1.5px solid var(--fg);
+  }
+  .app-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .app-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--fg-muted);
+    letter-spacing: 1px;
+  }
 
-        /* 타이머 & 라운드 체커 */
-        .timer-container { background: var(--surface-color); border-radius: 20px; padding: 25px 20px; text-align: center; margin-top: 10px; border: 1px solid var(--border-color); transition: background 0.3s;}
-        .timer-display { font-size: 5.5rem; font-weight: 900; color: var(--text-main); margin: 10px 0 20px 0; letter-spacing: -2px; }
-        .timer-phase { font-size: 1.3rem; font-weight: 800; color: var(--text-sub); height: 1.5rem; }
-        .timer-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; }
-        .timer-controls button { padding: 16px 0; flex: 1; font-size: 1.1rem; font-weight: 900; border-radius: 12px; border: none; cursor: pointer; color: white; }
-        .btn-start { background-color: var(--primary-color); }
-        .btn-stop { background-color: #ff9800; display: none; }
-        .btn-reset { background-color: #555; }
-        .timer-settings-row { display: flex; gap: 10px; margin-top: 15px; }
-        .timer-container.work-phase { background-color: #1a2e1e; border-color: #4caf50; } 
-        .timer-container.work-phase .timer-display { color: #4caf50; }
-        .timer-container.rest-phase { background-color: #3b1818; border-color: #e53935; } 
-        .timer-container.rest-phase .timer-display { color: #e53935; }
-        
-        .round-checker-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
-        .round-checker-title { font-size: 1rem; font-weight: 800; color: var(--primary-color); margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 5px; }
-        .round-display-area { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px; }
-        .round-number { font-size: 4rem; font-weight: 900; color: var(--text-main); width: 80px; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; }
-        .btn-round { background: var(--surface-color); color: var(--text-main); border: 2px solid var(--border-color); width: 60px; height: 60px; border-radius: 50%; font-size: 2.5rem; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.1s; }
-        .btn-round:active { transform: scale(0.9); background: var(--primary-color); border-color: var(--primary-color); color: white; }
-        .btn-round-reset { background: transparent; color: var(--text-sub); border: none; font-size: 0.85rem; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 5px; }
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--bg);
+    border-top: 1.5px solid var(--fg);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 14px 0 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+  }
+  .nav-btn:last-child { border-right: none; }
+  .nav-btn.active { color: var(--fg); background: var(--fg); color: var(--bg); }
+  .nav-btn svg { width: 20px; height: 20px; }
 
-        .today-plan-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left;}
-        .today-plan-header { font-size: 1rem; font-weight: 800; color: var(--primary-color); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
-        .today-plan-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color); }
-        .today-plan-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .tp-title { font-weight: 800; font-size: 1.05rem; margin-bottom: 4px; color: var(--text-main); }
-        .tp-memo { font-size: 0.85rem; color: var(--text-sub); line-height: 1.4; }
+  /* ── CALENDAR SCREEN ── */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--fg-muted);
+    padding: 18px 20px 10px;
+  }
 
-        nav { display: flex; justify-content: space-around; background-color: #000000; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom); }
-        nav a { text-decoration: none; color: var(--text-sub); text-align: center; padding: 12px 0; flex: 1; font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; }
-        nav a.active { color: var(--primary-color); }
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+  }
+  .cal-month {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+  }
+  .cal-nav-btn {
+    background: none;
+    border: 1.5px solid var(--fg);
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .cal-nav-btn:hover { background: var(--fg); color: var(--bg); }
 
-        /* 모달창 */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px); }
-        .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--surface-color); width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border-color); }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 700;}
-        .form-group input[type="text"], .form-group input[type="date"], .form-group input[type="number"], .form-group select, .form-group textarea { width: 100%; padding: 12px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; box-sizing: border-box; font-size: 1rem; font-family: 'Montserrat', sans-serif; }
-        
-        .check-group { display: flex; align-items: center; gap: 10px; background: rgba(255, 59, 48, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 59, 48, 0.3); margin-bottom: 18px;}
-        .check-group input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary-color); cursor: pointer; }
-        .check-group label { margin: 0; color: var(--primary-color); font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+  .cal-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0 10px;
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+  }
+  .cal-day-label {
+    text-align: center;
+    padding: 8px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--fg-muted);
+  }
 
-        .modal-buttons { display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap; }
-        .btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer; }
-        .btn-cancel { background: #333; color: var(--text-main); }
-        .btn-save { background: var(--primary-color); color: white; }
-        
-        .workout-item { background: var(--surface-color); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: relative; }
-        .workout-item-content { flex: 1; cursor: pointer; }
-        .workout-item.rest-item { border-left: 4px solid var(--rest-color); } 
-        .workout-item-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main); display: flex; align-items: center; gap: 6px;}
-        .workout-item-desc { font-size: 0.85rem; color: var(--text-sub); }
-        .item-sticker { display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; width: 24px; height: 24px; margin-left: 8px; font-size: 0.9rem;}
-        
-        .status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; letter-spacing: -0.5px; }
-        .status-plan { background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); }
-        .status-done { background: var(--primary-color); color: white; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0 10px;
+    gap: 2px;
+  }
+  .cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 2px 2px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+    position: relative;
+    min-height: 44px;
+  }
+  .cal-cell:hover { border-color: var(--border-dark); }
+  .cal-cell.today { border-color: var(--fg); }
+  .cal-cell.has-workout::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--fg);
+    position: absolute;
+    bottom: 4px;
+  }
+  .cal-cell.done-workout::after { background: var(--success); }
+  .cal-cell.has-pr::before {
+    content: '★';
+    font-size: 8px;
+    color: var(--fg-muted);
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+  .cal-cell .cell-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  .cal-cell.other-month .cell-num { color: var(--fg-faint); }
+  .cal-cell.selected { background: var(--fg); }
+  .cal-cell.selected .cell-num { color: var(--bg); }
 
-        .btn-add { background: transparent; color: var(--primary-color); border: 2px dashed var(--primary-color); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-bottom: 15px; font-size: 1rem;}
-        .btn-close { background: #222; color: var(--text-sub); width: 100%; margin-top: 10px; border: 1px solid var(--border-color); }
-        .btn-icon-delete { background: transparent; border: none; color: #777; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .btn-danger-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px; width: 100%; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 30px; font-size: 0.9rem; display:flex; justify-content:center; align-items:center; gap:6px;}
-    </style>
+  /* workout dot indicators inside cell */
+  .cell-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+  }
+  .cell-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+  }
+  .dot-cf { background: #c00; }
+  .dot-run { background: #06a; }
+  .dot-lift { background: #660; }
+
+  /* ── DAY DETAIL ── */
+  .day-detail {
+    border-top: 1.5px solid var(--fg);
+    padding: 16px 20px;
+  }
+  .day-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .day-detail-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+  .add-workout-btn {
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    padding: 6px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  .workout-list { display: flex; flex-direction: column; gap: 8px; }
+  .workout-card {
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .workout-type-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 3px 8px;
+    border: 1px solid;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .badge-cf { border-color: #c00; color: #c00; }
+  .badge-run { border-color: #06a; color: #06a; }
+  .badge-lift { border-color: #660; color: #660; }
+
+  .workout-info { flex: 1; }
+  .workout-name { font-size: 13px; font-weight: 500; }
+  .workout-note { font-size: 11px; color: var(--fg-muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  .done-toggle {
+    width: 24px; height: 24px;
+    border: 1.5px solid var(--border-dark);
+    background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .done-toggle.done { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--fg-faint);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .delete-btn:hover { color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 24px;
+    color: var(--fg-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 430px;
+    border-top: 2px solid var(--fg);
+    padding: 20px;
+    animation: slideUp 0.2s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--fg-muted);
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border-dark);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--fg);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--fg); }
+  .form-textarea { resize: vertical; min-height: 70px; }
+
+  .type-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .type-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    background: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .type-btn.active-cf { border-color: #c00; background: #c00; color: #fff; }
+  .type-btn.active-run { border-color: #06a; background: #06a; color: #fff; }
+  .type-btn.active-lift { border-color: #660; background: #660; color: #fff; }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity 0.15s;
+  }
+  .submit-btn:hover { opacity: 0.85; }
+
+  /* ── TIMER SCREEN ── */
+  .timer-mode-selector {
+    display: flex;
+    border-bottom: 1.5px solid var(--fg);
+    border-top: 1px solid var(--border);
+  }
+  .timer-mode-btn {
+    flex: 1;
+    padding: 10px 0;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--fg-muted);
+    transition: all 0.15s;
+    line-height: 1.2;
+  }
+  .timer-mode-btn:last-child { border-right: none; }
+  .timer-mode-btn.active { background: var(--fg); color: var(--bg); }
+
+  .timer-display {
+    padding: 30px 20px 20px;
+    text-align: center;
+  }
+  .timer-face {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 88px;
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .timer-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+  }
+
+  .timer-settings {
+    padding: 0 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .timer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+  }
+  .timer-row-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    flex: 1;
+  }
+  .num-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .num-btn {
+    width: 30px; height: 30px;
+    border: 1.5px solid var(--fg);
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .num-btn:hover { background: var(--fg); color: var(--bg); }
+  .num-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: center;
+  }
+
+  .timer-controls {
+    padding: 0 20px 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .ctrl-btn {
+    flex: 1;
+    padding: 14px;
+    border: 1.5px solid var(--fg);
+    background: none;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    transition: all 0.15s;
+  }
+  .ctrl-btn.primary { background: var(--fg); color: var(--bg); }
+  .ctrl-btn:hover:not(.primary) { background: var(--fg); color: var(--bg); }
+  .ctrl-btn.primary:hover { opacity: 0.85; }
+
+  .round-counter {
+    margin: 0 20px;
+    border: 1.5px solid var(--fg);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .round-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .round-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .round-controls { display: flex; gap: 8px; }
+  .round-btn {
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--fg);
+    background: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .round-btn:hover { background: var(--fg); color: var(--bg); }
+
+  .timer-active-label {
+    padding: 6px 20px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--fg-muted);
+    text-align: center;
+    min-height: 20px;
+  }
+
+  /* ── PR SCREEN ── */
+  .pr-add-area {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pr-add-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed var(--border-dark);
+    background: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--fg-muted);
+    transition: all 0.15s;
+  }
+  .pr-add-btn:hover { border-color: var(--fg); color: var(--fg); background: var(--surface); }
+
+  .pr-filters {
+    padding: 12px 20px;
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .filter-btn {
+    padding: 5px 14px;
+    border: 1px solid var(--border);
+    background: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.12s;
+  }
+  .filter-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+  .pr-list {
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pr-card {
+    border: 1px solid var(--border);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pr-card-left { flex: 1; }
+  .pr-exercise {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .pr-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    align-items: center;
+  }
+  .pr-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--fg-muted);
+  }
+  .pr-record {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* ── TABATA INTERVAL labels ── */
+  .tabata-status {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 4px;
+    padding: 0 20px 10px;
+    text-align: center;
+    color: var(--fg-muted);
+  }
+  .tabata-status.work { color: var(--fg); }
+  .tabata-status.rest { color: var(--fg-muted); }
+
+</style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-title"><img src="wodiary_logo.png" style="height: 4rem; border-radius: 50%; box-shadow: 0 4px 10px rgba(255,59,48,0.3);" alt="로고"> WODiary</div>
-        <div class="login-desc">나만의 크로스핏 다이어리</div>
-        <div class="login-form">
-            <input type="email" id="auth-email" placeholder="이메일 주소">
-            <input type="password" id="auth-password" placeholder="비밀번호 (6자리 이상)">
-            <button class="btn-login" onclick="loginUser()">로그인</button>
-            <button class="btn-signup" onclick="signUpUser()">회원가입</button>
-        </div>
+<!-- ══ SCREENS ══ -->
+
+<!-- CALENDAR -->
+<div class="screen active" id="screen-cal">
+  <div class="app-header">
+    <div class="app-logo">WRKOUT</div>
+    <div class="app-date" id="header-date"></div>
+  </div>
+
+  <div class="cal-nav">
+    <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+    <div class="cal-month" id="cal-month-label"></div>
+    <button class="cal-nav-btn" onclick="changeMonth(1)">&#8594;</button>
+  </div>
+
+  <div class="cal-grid-header">
+    <div class="cal-day-label">SUN</div>
+    <div class="cal-day-label">MON</div>
+    <div class="cal-day-label">TUE</div>
+    <div class="cal-day-label">WED</div>
+    <div class="cal-day-label">THU</div>
+    <div class="cal-day-label">FRI</div>
+    <div class="cal-day-label">SAT</div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+
+  <div class="day-detail" id="day-detail">
+    <div class="day-detail-header">
+      <div class="day-detail-title" id="detail-date-label">SELECT A DATE</div>
+      <button class="add-workout-btn" onclick="openWorkoutModal()">+ ADD</button>
     </div>
-
-    <header>
-        <div class="header-title"><img src="wodiary_logo.png" alt="로고"> WODiary</div>
-        <div class="header-buttons">
-            <button class="btn-header" id="btn-lang-toggle" onclick="toggleLanguage()"><span class="material-icons" style="font-size: 1rem;">language</span> <span>ENG</span></button>
-            <button class="btn-header" onclick="logoutUser()"><span class="material-icons" style="font-size: 1rem;">logout</span></button>
-        </div>
-    </header>
-
-    <main>
-        <div id="view-home" class="view active">
-            <div class="section-header"><span id="txt-month-summary">이번 달 요약</span></div>
-            <div class="stats-container">
-                <div class="stat-card"><div class="stat-value" id="stat-workout-days">0</div><div class="stat-label" id="txt-workout-days">Workout Days</div></div>
-                <div class="stat-card"><div class="stat-value rest" id="stat-rest-days">0</div><div class="stat-label" id="txt-rest-days">Rest Days</div></div>
-            </div>
-            <div class="section-header" style="margin-top: 35px;"><span id="txt-recent-records">최근 기록</span></div>
-            <div id="recent-workout-list"></div>
-            <button class="btn-danger-outline" onclick="deleteAllData()"><span class="material-icons" style="font-size: 1.1rem;">delete_forever</span> 내 데이터 초기화</button>
-        </div>
-
-        <div id="view-calendar" class="view">
-            <div class="calendar-header">
-                <button onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
-                <span id="current-month-year"></span>
-                <button onclick="changeMonth(1)"><span class="material-icons">chevron_right</span></button>
-            </div>
-            <div class="calendar-grid" id="calendar-grid"></div>
-            <div style="margin-top:15px; display:flex; gap:15px; justify-content:center; font-size:0.8rem; color:var(--text-sub);">
-                <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%; border:2px solid var(--primary-color); vertical-align:middle; margin-right:4px;"></span>계획됨</span>
-                <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--primary-color); vertical-align:middle; margin-right:4px;"></span>완료함</span>
-            </div>
-        </div>
-
-        <div id="view-pr" class="view">
-            <div class="calc-card">
-                <div style="font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:6px;" id="txt-1rm-calc"><span class="material-icons" style="color:var(--primary-color);">calculate</span> 1RM % 계산기</div>
-                <input type="number" id="calc-input" oninput="calc1RM(this.value)" placeholder="1RM (예: 100)" style="width:100%; padding:12px; box-sizing:border-box; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-main); font-weight:bold;">
-                <div class="calc-grid" id="calc-result"></div>
-            </div>
-            <div class="section-header"><span>Personal Records</span><button class="btn-action" id="txt-add-pr" onclick="openPRModal(-1)">+ ADD PR</button></div>
-            <div id="pr-list-container"></div>
-        </div>
-
-        <div id="view-timer" class="view">
-            <div class="section-header"><span>WOD Timer</span></div>
-            <div class="timer-container" id="timer-box">
-                <div class="form-group" style="margin-bottom: 10px; text-align:left;">
-                    <label id="txt-timer-mode">모드 선택</label>
-                    <select id="timer-type" onchange="changeTimerMode()">
-                        <option value="up">For Time (스톱워치)</option>
-                        <option value="down">AMRAP (카운트다운)</option>
-                        <option value="interval">EMOM / Tabata</option>
-                    </select>
-                </div>
-                <div class="timer-settings-row" id="timer-setting-down" style="display:none;">
-                    <div class="form-group" style="flex:1;"><input type="number" id="t-down-min" placeholder="Min" value="10" min="0"></div>
-                    <div class="form-group" style="flex:1;"><input type="number" id="t-down-sec" placeholder="Sec" value="0" min="0" max="59"></div>
-                </div>
-                <div class="timer-settings-row" id="timer-setting-interval" style="display:none;">
-                    <div class="form-group" style="flex:1;"><label id="txt-int-work">WORK</label><input type="number" id="t-int-work" value="40" min="1"></div>
-                    <div class="form-group" style="flex:1;"><label id="txt-int-rest">REST</label><input type="number" id="t-int-rest" value="20" min="0"></div>
-                    <div class="form-group" style="flex:1;"><label id="txt-int-round">ROUND</label><input type="number" id="t-int-round" value="5" min="1"></div>
-                </div>
-                <div class="timer-phase" id="timer-phase-text"></div>
-                <div class="timer-display" id="timer-display">00:00</div>
-                <div class="timer-controls">
-                    <button class="btn-start" id="btn-timer-start" onclick="startTimer()">START</button>
-                    <button class="btn-stop" id="btn-timer-stop" onclick="stopTimer()">PAUSE</button>
-                    <button class="btn-reset" id="btn-timer-reset" onclick="resetTimer()">RESET</button>
-                </div>
-                
-                <div class="round-checker-box">
-                    <div class="round-checker-title"><span class="material-icons">autorenew</span> ROUND CHECKER</div>
-                    <div class="round-display-area">
-                        <button class="btn-round" onclick="subRound()">-</button>
-                        <div class="round-number" id="wod-round-count">0</div>
-                        <button class="btn-round" onclick="addRound()">+</button>
-                    </div>
-                    <button class="btn-round-reset" onclick="resetRoundCount()">초기화 (Reset)</button>
-                </div>
-
-                <div class="today-plan-box" id="timer-today-plan"></div>
-            </div>
-        </div>
-    </main>
-
-    <nav>
-        <a href="#" onclick="switchView('view-home', this)" class="active" id="nav-home"><i class="material-icons">home</i><span>HOME</span></a>
-        <a href="#" onclick="switchView('view-calendar', this)" id="nav-calendar"><i class="material-icons">event_note</i><span>CALENDAR</span></a>
-        <a href="#" onclick="switchView('view-pr', this)" id="nav-pr"><i class="material-icons">emoji_events</i><span>PR</span></a>
-        <a href="#" onclick="switchView('view-timer', this)" id="nav-timer"><i class="material-icons">timer</i><span>TIMER</span></a>
-    </nav>
-
-    <div class="modal-overlay" id="record-modal">
-        <div class="modal-content">
-            <h3 id="modal-date-title" style="margin-top:0; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px; color:var(--primary-color);">날짜</h3>
-            <div id="modal-list-view">
-                <div id="workout-list"></div>
-                <button class="btn btn-add" id="txt-btn-add-wod" onclick="openFormView(-1)">+ ADD PLAN / WORKOUT</button>
-                <button class="btn btn-close" id="txt-btn-close" onclick="closeModal('record-modal')">CLOSE</button>
-            </div>
-            <div id="modal-form-view" style="display: none;">
-                <div class="check-group">
-                    <input type="checkbox" id="wod-completed">
-                    <label for="wod-completed" id="txt-lbl-completed">운동 완료 (체크 해제 시 '계획'으로 저장)</label>
-                </div>
-                <div class="form-group"><label id="txt-lbl-type">분류</label>
-                    <select id="wod-type">
-                        <option value="AMRAP">AMRAP</option><option value="For Time">For Time</option>
-                        <option value="EMOM">EMOM</option><option value="Strength">Strength (1RM/5RM)</option>
-                        <option value="Rest">Rest (휴식)</option><option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group"><label id="txt-lbl-name">WOD / 동작</label><input type="text" id="wod-name" placeholder="Cindy, Back Squat..."></div>
-                <div class="form-group"><label id="txt-lbl-score">기록 (Score/Weight)</label><input type="text" id="wod-score" placeholder="15R+5, 100kg..."></div>
-                <div class="form-group"><label id="txt-lbl-memo">메모 / 목표</label><textarea id="wod-memo" placeholder="스케일링 목표, 다짐 등..."></textarea></div>
-                <div class="form-group"><label id="txt-lbl-sticker">스티커 (완료 시 표시)</label>
-                    <select id="wod-sticker">
-                        <option value="">None (없음)</option><option value="star">★ PR / 신기록</option><option value="local_fire_department">🔥 고강도 / 불태움</option><option value="healing">🩹 부상 / 컨디션 난조</option><option value="water_drop">💧 리커버리</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn btn-cancel" id="txt-btn-back" onclick="showListView()">BACK</button>
-                    <button class="btn btn-save" id="txt-btn-save1" onclick="saveWorkout()">SAVE</button>
-                </div>
-            </div>
-        </div>
+    <div class="workout-list" id="workout-list">
+      <div class="empty-state">NO WORKOUT LOGGED</div>
     </div>
+  </div>
+</div>
 
-    <div class="modal-overlay" id="pr-modal">
-        <div class="modal-content">
-            <h3 id="txt-pr-modal-title" style="margin-top:0; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px; color:var(--primary-color);">PR 기록</h3>
-            <div class="form-group"><label id="txt-pr-date">Date</label><input type="date" id="pr-input-date"></div>
-            <div class="form-group"><label id="txt-pr-name">Movement</label><input type="text" id="pr-input-type" placeholder="Back Squat, Fran..."></div>
-            <div class="form-group"><label id="txt-pr-record">Record</label><input type="text" id="pr-input-record" placeholder="100kg, 2:30..."></div>
-            <div class="modal-buttons">
-                <button class="btn btn-cancel" id="txt-btn-cancel" onclick="closeModal('pr-modal')">CANCEL</button>
-                <button class="btn btn-save" id="txt-btn-save2" onclick="savePR()">SAVE</button>
-            </div>
-        </div>
+<!-- TIMER -->
+<div class="screen" id="screen-timer">
+  <div class="app-header">
+    <div class="app-logo">TIMER</div>
+  </div>
+
+  <div class="timer-mode-selector">
+    <button class="timer-mode-btn active" onclick="setTimerMode('timecap', this)">TIME<br>CAP</button>
+    <button class="timer-mode-btn" onclick="setTimerMode('fortime', this)">FOR<br>TIME</button>
+    <button class="timer-mode-btn" onclick="setTimerMode('amrap', this)">AMRAP</button>
+    <button class="timer-mode-btn" onclick="setTimerMode('emom', this)">EMOM</button>
+    <button class="timer-mode-btn" onclick="setTimerMode('tabata', this)">TABATA</button>
+  </div>
+
+  <div class="timer-display">
+    <div class="timer-face" id="timer-face">00:00</div>
+    <div class="timer-label" id="timer-sub-label">SET TIME AND START</div>
+  </div>
+
+  <div class="tabata-status" id="tabata-status"></div>
+
+  <div class="timer-settings" id="timer-settings">
+    <!-- dynamically rendered -->
+  </div>
+
+  <div class="timer-controls">
+    <button class="ctrl-btn primary" id="start-btn" onclick="toggleTimer()">START</button>
+    <button class="ctrl-btn" onclick="resetTimer()">RESET</button>
+  </div>
+
+  <div class="round-counter">
+    <div>
+      <div class="round-label">ROUNDS</div>
+      <div class="round-num" id="round-display">0</div>
     </div>
+    <div class="round-controls">
+      <button class="round-btn" onclick="adjustRound(-1)">−</button>
+      <button class="round-btn" onclick="adjustRound(1)">+</button>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // ==========================================
-        // 1. 전역 변수 & 언어 설정
-        // ==========================================
-        let workoutData = {};
-        let prDataList = [];
-        let currentUser = null;
-        let currentDate = new Date();
-        let selectedDateString = "";
-        let currentEditIndex = -1;
-        let currentPrIndex = -1;
+<!-- PR -->
+<div class="screen" id="screen-pr">
+  <div class="app-header">
+    <div class="app-logo">PR</div>
+    <div class="app-date">PERSONAL RECORDS</div>
+  </div>
 
-        const i18n = {
-            ko: { langFlag: "ENG", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER", monthSummary: "이번 달 요약", txtDone: "완료", txtPlan: "계획", alertDel: "삭제할까요?", alertPrIncomplete: "모두 입력해주세요", alertAutoPr: "달력에 추가됨!", todayPlanTitle: "오늘의 계획", noPlanToday: "계획 없음", noRecord: "기록 없음" },
-            en: { langFlag: "KOR", navHome: "HOME", navCalendar: "CALENDAR", navPr: "PR", navTimer: "TIMER", monthSummary: "Summary", txtDone: "Done", txtPlan: "Plan", alertDel: "Delete?", alertPrIncomplete: "Fill fields", alertAutoPr: "Added!", todayPlanTitle: "Today's Plan", noPlanToday: "No Plan", noRecord: "No Record" }
-        };
-        let currentLang = localStorage.getItem('crossfit_lang') || 'ko';
+  <div class="pr-add-area">
+    <button class="pr-add-btn" onclick="openPRModal()">＋ LOG NEW PR</button>
+  </div>
 
-        // ==========================================
-        // 2. UI 렌더링 함수들 (가장 먼저 정의되어야 함)
-        // ==========================================
-        function applyLanguage() { document.getElementById('btn-lang-toggle').innerHTML = `<span class="material-icons" style="font-size:1rem;">language</span> <span>${i18n[currentLang].langFlag}</span>`; }
-        function toggleLanguage() { currentLang = currentLang === 'ko' ? 'en' : 'ko'; localStorage.setItem('crossfit_lang', currentLang); applyLanguage(); renderAll(); }
-        
-        function switchView(targetId, element) {
-            document.querySelectorAll('nav a').forEach(n => n.classList.remove('active')); element.classList.add('active');
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(targetId).classList.add('active');
-            renderAll();
-        }
+  <div class="pr-filters">
+    <button class="filter-btn active" onclick="filterPR('all', this)">ALL</button>
+    <button class="filter-btn" onclick="filterPR('crossfit', this)">CROSSFIT</button>
+    <button class="filter-btn" onclick="filterPR('run', this)">RUN</button>
+    <button class="filter-btn" onclick="filterPR('lifting', this)">LIFTING</button>
+  </div>
 
-        function renderAll() {
-            renderDashboard(); renderCalendar(); renderPRs(); renderTimerPlan();
-        }
+  <div class="pr-list" id="pr-list"></div>
+</div>
 
-        function renderDashboard() {
-            const y = currentDate.getFullYear(); const mStr = String(currentDate.getMonth() + 1).padStart(2, '0');
-            let wCount = 0, rCount = 0, all = [];
-            for (const d in workoutData) {
-                if (d.startsWith(`${y}-${mStr}`) && workoutData[d].length > 0) {
-                    if (workoutData[d].some(r => r.isCompleted && r.type !== 'Rest')) wCount++;
-                    if (workoutData[d].some(r => r.isCompleted && r.type === 'Rest')) rCount++;
-                }
-                workoutData[d].forEach(r => all.push({ date: d, ...r }));
-            }
-            document.getElementById('stat-workout-days').innerText = wCount; document.getElementById('stat-rest-days').innerText = rCount;
-            
-            all.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const cont = document.getElementById('recent-workout-list'); cont.innerHTML = '';
-            if (all.slice(0, 4).length === 0) cont.innerHTML = `<p style="text-align:center; color:#aaa;">${i18n[currentLang].noRecord}</p>`;
-            else all.slice(0, 4).forEach(r => {
-                const div = document.createElement('div'); div.className = 'workout-item';
-                const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons" style="color:var(--primary-color);">${r.sticker}</span></span>` : '';
-                const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`;
-                div.innerHTML = `<div class="workout-item-title">${r.date} ${badge}</div><div class="workout-item-desc">${r.type} ${r.name?'- '+r.name:''}</div>${st}`;
-                div.onclick = () => { document.querySelector('[data-target="view-calendar"]').click(); openDateModal(r.date); }; cont.appendChild(div);
-            });
-        }
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('cal', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+    CALENDAR
+  </button>
+  <button class="nav-btn" onclick="showScreen('timer', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="9" y1="2" x2="15" y2="2"/></svg>
+    TIMER
+  </button>
+  <button class="nav-btn" onclick="showScreen('pr', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    PR
+  </button>
+</nav>
 
-        function changeMonth(val) { currentDate.setMonth(currentDate.getMonth() + val); renderCalendar(); renderDashboard(); }
-        
-        function renderCalendar() {
-            const y = currentDate.getFullYear(), m = currentDate.getMonth(); document.getElementById('current-month-year').innerText = `${y}년 ${m + 1}월`;
-            const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
-            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            ['일','월','화','수','목','금','토'].forEach(d => { grid.innerHTML += `<div class="day-name">${d}</div>`; });
-            for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="calendar-day empty"></div>`;
-            const today = new Date();
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                let cls = 'calendar-day', inr = i;
-                if (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()) cls += ' today';
-                if (workoutData[dStr] && workoutData[dStr].length > 0) {
-                    let isR=false, hasD=false, hasP=false, stk=null;
-                    workoutData[dStr].forEach(r => { if(r.type==='Rest') isR=true; if(r.isCompleted) { hasD=true; if(r.sticker) stk=r.sticker; } else hasP=true; });
-                    if (isR && hasD) cls += ' is-rest'; else if (stk) inr = `<span style="position:absolute; top:5px;">${i}</span><span class="day-sticker material-icons">${stk}</span>`;
-                    else if (hasD) cls += ' has-record'; else if (hasP) cls += ' has-plan';
-                }
-                grid.innerHTML += `<div class="${cls}" onclick="openDateModal('${dStr}')">${inr}</div>`;
-            }
-        }
+<!-- ══ MODALS ══ -->
 
-        function openDateModal(d) { selectedDateString = d; document.getElementById('modal-date-title').innerText = d; renderWorkoutList(); showListView(); document.getElementById('record-modal').classList.add('active'); }
-        function showListView() { document.getElementById('modal-list-view').style.display = 'block'; document.getElementById('modal-form-view').style.display = 'none'; }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        
-        function renderWorkoutList() {
-            const c = document.getElementById('workout-list'); c.innerHTML = ''; const recs = workoutData[selectedDateString] || [];
-            if (recs.length === 0) c.innerHTML = `<p style="text-align:center; color:#aaa;">${i18n[currentLang].noRecord}</p>`;
-            else recs.forEach((r, i) => {
-                const st = r.sticker && r.isCompleted ? `<span class="item-sticker"><span class="material-icons">${r.sticker}</span></span>` : '';
-                const badge = r.isCompleted ? `<span class="status-badge status-done">${i18n[currentLang].txtDone}</span>` : `<span class="status-badge status-plan">${i18n[currentLang].txtPlan}</span>`;
-                c.innerHTML += `<div class="workout-item"><div class="workout-item-content" onclick="openFormView(${i})"><div class="workout-item-title">${r.type} ${badge}</div><div class="workout-item-desc">${r.name||''} ${r.score||''}</div>${st}</div><button class="btn-icon-delete" onclick="deleteWorkoutDirect(${i}, event)"><span class="material-icons">delete</span></button></div>`;
-            });
-        }
+<!-- Workout Add Modal -->
+<div class="modal-overlay" id="workout-modal">
+  <div class="modal">
+    <div class="modal-title">
+      ADD WORKOUT
+      <button class="modal-close" onclick="closeModal('workout-modal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">TYPE</label>
+      <div class="type-selector">
+        <button class="type-btn" id="type-cf" onclick="selectType('crossfit')">CF</button>
+        <button class="type-btn" id="type-run" onclick="selectType('run')">RUN</button>
+        <button class="type-btn" id="type-lift" onclick="selectType('lifting')">LIFT</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">WORKOUT NAME</label>
+      <input class="form-input" id="wk-name" placeholder="e.g. Fran, 5K, Back Squat">
+    </div>
+    <div class="form-group">
+      <label class="form-label">NOTES / RX</label>
+      <textarea class="form-textarea" id="wk-note" placeholder="Weight, distance, details…"></textarea>
+    </div>
+    <button class="submit-btn" onclick="addWorkout()">ADD WORKOUT</button>
+  </div>
+</div>
 
-        function openFormView(idx) {
-            currentEditIndex = idx; document.getElementById('modal-list-view').style.display = 'none'; document.getElementById('modal-form-view').style.display = 'block';
-            if (idx > -1) {
-                const r = workoutData[selectedDateString][idx]; document.getElementById('wod-completed').checked = r.isCompleted;
-                ['type', 'name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = r[k] || '');
-            } else {
-                document.getElementById('wod-completed').checked = true; ['name', 'score', 'memo', 'sticker'].forEach(k => document.getElementById(`wod-${k}`).value = ''); document.getElementById('wod-type').value = 'AMRAP';
-            }
-        }
+<!-- PR Add Modal -->
+<div class="modal-overlay" id="pr-modal">
+  <div class="modal">
+    <div class="modal-title">
+      LOG PR
+      <button class="modal-close" onclick="closeModal('pr-modal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">TYPE</label>
+      <div class="type-selector">
+        <button class="type-btn" id="pr-type-cf" onclick="selectPRType('crossfit')">CF</button>
+        <button class="type-btn" id="pr-type-run" onclick="selectPRType('run')">RUN</button>
+        <button class="type-btn" id="pr-type-lift" onclick="selectPRType('lifting')">LIFT</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">EXERCISE</label>
+      <input class="form-input" id="pr-exercise" placeholder="e.g. Clean & Jerk, 1 Mile, Snatch">
+    </div>
+    <div class="form-group">
+      <label class="form-label">DATE</label>
+      <input class="form-input" type="date" id="pr-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">RECORD (e.g. 100kg / 4:32 / 21-15-9)</label>
+      <input class="form-input" id="pr-record" placeholder="Enter your PR">
+    </div>
+    <button class="submit-btn" onclick="addPR()">SAVE PR</button>
+  </div>
+</div>
 
-        function saveWorkout() {
-            const r = { isCompleted: document.getElementById('wod-completed').checked, type: document.getElementById('wod-type').value, name: document.getElementById('wod-name').value, score: document.getElementById('wod-score').value, memo: document.getElementById('wod-memo').value, sticker: document.getElementById('wod-sticker').value };
-            if (!workoutData[selectedDateString]) workoutData[selectedDateString] = [];
-            if (currentEditIndex > -1) workoutData[selectedDateString][currentEditIndex] = r; else workoutData[selectedDateString].push(r);
-            updateAndSync();
-        }
+<script>
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+let state = {
+  workouts: JSON.parse(localStorage.getItem('wrkout-workouts') || '{}'),
+  prs: JSON.parse(localStorage.getItem('wrkout-prs') || '[]'),
+};
 
-        function deleteWorkoutDirect(idx, e) { e.stopPropagation(); if(confirm(i18n[currentLang].alertDel)) { workoutData[selectedDateString].splice(idx, 1); updateAndSync(); } }
+function saveState() {
+  localStorage.setItem('wrkout-workouts', JSON.stringify(state.workouts));
+  localStorage.setItem('wrkout-prs', JSON.stringify(state.prs));
+}
 
-        function renderPRs() {
-            const c = document.getElementById('pr-list-container'); c.innerHTML = ''; const s = [...prDataList].sort((a, b) => new Date(b.date) - new Date(a.date));
-            if(s.length===0) return;
-            s.forEach(pr => {
-                const idx = prDataList.findIndex(item => item === pr);
-                c.innerHTML += `<div class="pr-item"><div class="pr-item-content" onclick="openPRModal(${idx})"><div class="pr-header"><span>${pr.type}</span><span class="pr-record-val">${pr.record}</span></div><div class="pr-date">${pr.date}</div></div><button class="btn-icon-delete" onclick="deletePRDirect(${idx}, event)"><span class="material-icons">delete</span></button></div>`;
-            });
-        }
+// ═══════════════════════════════════
+//  NAV
+// ═══════════════════════════════════
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'timer') renderTimerSettings();
+  if (id === 'pr') renderPR();
+}
 
-        function openPRModal(idx) { currentPrIndex = idx; if(idx > -1) { const pr = prDataList[idx]; document.getElementById('pr-input-date').value = pr.date; document.getElementById('pr-input-type').value = pr.type; document.getElementById('pr-input-record').value = pr.record; } else { document.getElementById('pr-input-date').value = new Date().toISOString().split('T')[0]; document.getElementById('pr-input-type').value = ''; document.getElementById('pr-input-record').value = ''; } document.getElementById('pr-modal').classList.add('active'); }
-        
-        function savePR() {
-            let date = document.getElementById('pr-input-date').value, type = document.getElementById('pr-input-type').value.trim(), record = document.getElementById('pr-input-record').value.trim();
-            if(!type || !record) return; if(!date) date = new Date().toISOString().split('T')[0];
-            const newPR = { date, type, record }; if(currentPrIndex === -1) prDataList.push(newPR); else prDataList[currentPrIndex] = newPR;
-            closeModal('pr-modal'); updateAndSync();
-        }
-        function deletePRDirect(idx, e) { e.stopPropagation(); if(confirm(i18n[currentLang].alertDel)) { prDataList.splice(idx, 1); updateAndSync(); } }
-        function calc1RM(val) { const w = parseFloat(val); const d = document.getElementById('calc-result'); if(!w) { d.innerHTML = ''; return; } let h = ''; [95, 90, 85, 80, 75, 65, 55, 50].forEach(p => h += `<div><span style="color:#aaa; font-size:0.8rem;">${p}%</span><br><strong>${(w * p / 100).toFixed(1)}</strong></div>`); d.innerHTML = h; }
+// ═══════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════
+let calYear, calMonth, selectedDate;
 
-        function renderTimerPlan() {
-            const todayStr = new Date().toISOString().split('T')[0]; const c = document.getElementById('timer-today-plan'); const recs = workoutData[todayStr] || [];
-            let html = `<div class="today-plan-header"><span class="material-icons">assignment</span> ${i18n[currentLang].todayPlanTitle}</div>`;
-            if (recs.length === 0) html += `<p style="text-align:center; color:#aaa;">${i18n[currentLang].noPlanToday}</p>`;
-            else recs.forEach(r => { html += `<div class="today-plan-item"><div class="tp-title">${r.type} ${r.name?'- '+r.name:''}</div></div>`; });
-            c.innerHTML = html;
-        }
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  selectedDate = dateKey(now);
+  document.getElementById('header-date').textContent =
+    now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }).toUpperCase();
+  renderCal();
+  renderDayDetail();
+}
 
-        // ==========================================
-        // 3. 타이머 & 라운드 체커 로직
-        // ==========================================
-        let currentWodRound = 0;
-        function addRound() { currentWodRound++; document.getElementById('wod-round-count').innerText = currentWodRound; }
-        function subRound() { if(currentWodRound > 0) { currentWodRound--; document.getElementById('wod-round-count').innerText = currentWodRound; } }
-        function resetRoundCount() { currentWodRound = 0; document.getElementById('wod-round-count').innerText = currentWodRound; }
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
-        let timerInterval, timeInSeconds = 0, isTimerRunning = false, intervalState = { currentRound: 1, totalRounds: 5, isWorkPhase: true, workSec: 40, restSec: 20 };
-        function changeTimerMode() {
-            const t = document.getElementById('timer-type').value; document.getElementById('timer-setting-down').style.display = t==='down'?'flex':'none'; document.getElementById('timer-setting-interval').style.display = t==='interval'?'flex':'none'; resetTimerUI();
-            if(t==='down') timeInSeconds = (parseInt(document.getElementById('t-down-min').value)||0)*60 + (parseInt(document.getElementById('t-down-sec').value)||0);
-            else if(t==='interval') { intervalState.workSec = parseInt(document.getElementById('t-int-work').value)||40; intervalState.restSec = parseInt(document.getElementById('t-int-rest').value)||20; intervalState.totalRounds = parseInt(document.getElementById('t-int-round').value)||5; intervalState.currentRound=1; intervalState.isWorkPhase=true; timeInSeconds=intervalState.workSec; document.getElementById('timer-phase-text').innerText = `Round 1 / ${intervalState.totalRounds} - READY`; } else timeInSeconds = 0; updateTimerDisplay();
-        }
-        function updateTimerDisplay() { document.getElementById('timer-display').innerText = `${String(Math.floor(timeInSeconds / 60)).padStart(2, '0')}:${String(timeInSeconds % 60).padStart(2, '0')}`; }
-        function resetTimerUI() { clearInterval(timerInterval); isTimerRunning = false; document.getElementById('btn-timer-start').style.display = 'block'; document.getElementById('btn-timer-stop').style.display = 'none'; document.getElementById('timer-box').className = 'timer-container'; document.getElementById('timer-phase-text').innerText = ''; }
-        function startTimer() { if (isTimerRunning) return; const t = document.getElementById('timer-type').value; if (timeInSeconds === 0 && t === 'down') timeInSeconds = (parseInt(document.getElementById('t-down-min').value)||0)*60 + (parseInt(document.getElementById('t-down-sec').value)||0); isTimerRunning = true; document.getElementById('btn-timer-start').style.display = 'none'; document.getElementById('btn-timer-stop').style.display = 'block'; timerInterval = setInterval(() => { if (t === 'up') timeInSeconds++; else if (t === 'down') { timeInSeconds--; if (timeInSeconds <= 0) { resetTimerUI(); timeInSeconds = 0; alert("END!"); } } else if (t === 'interval') { timeInSeconds--; if (timeInSeconds <= 0) { if (intervalState.isWorkPhase && intervalState.restSec > 0) { intervalState.isWorkPhase = false; timeInSeconds = intervalState.restSec; document.getElementById('timer-phase-text').innerText = `REST`; } else { intervalState.currentRound++; if (intervalState.currentRound > intervalState.totalRounds) { resetTimerUI(); alert('END!'); return; } intervalState.isWorkPhase = true; timeInSeconds = intervalState.workSec; document.getElementById('timer-phase-text').innerText = `WORK`; } } } updateTimerDisplay(); }, 1000); }
-        function stopTimer() { resetTimerUI(); } function resetTimer() { resetTimerUI(); changeTimerMode(); }
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+}
 
-        // ==========================================
-        // 4. 수파베이스 (서버 통신 & 로그인) 로직
-        // ==========================================
-        const { createClient } = supabase;
-        const supabaseClient = createClient('https://ngenrfzcocnusrvbuupb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nZW5yZnpjb2NudXNydmJ1dXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNTY1MTcsImV4cCI6MjA4ODgzMjUxN30.vNmP_ORgKgrVuM77wBFBHfCLw-gWaV9LuUqMq7o0rpw');
+function renderCal() {
+  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
 
-        async function signUpUser() { const e=document.getElementById('auth-email').value, p=document.getElementById('auth-password').value; if(!e||p.length<6) return alert("입력 확인"); const {error} = await supabaseClient.auth.signUp({email:e, password:p}); if(error) alert(error.message); else alert("가입 완료"); }
-        async function loginUser() { const e=document.getElementById('auth-email').value, p=document.getElementById('auth-password').value; const {error} = await supabaseClient.auth.signInWithPassword({email:e, password:p}); if(error) alert("로그인 실패"); }
-        async function logoutUser() { await supabaseClient.auth.signOut(); window.location.reload(); }
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
 
-        async function syncDataToCloud() {
-            if(!currentUser) return;
-            await supabaseClient.from('user_data').upsert({ user_id: currentUser.id, workout_data: workoutData, pr_data: prDataList });
-        }
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days = new Date(calYear, calMonth+1, 0).getDate();
+  const today = dateKey(new Date());
+  const prDates = new Set(state.prs.map(p => p.date));
 
-        function updateAndSync() { syncDataToCloud(); renderAll(); if(document.getElementById('modal-list-view').style.display === 'block') renderWorkoutList(); }
+  // prev month fill
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  for (let i = first-1; i >= 0; i--) {
+    const d = new Date(calYear, calMonth-1, prevDays-i);
+    grid.appendChild(makeCell(d, true, today, prDates));
+  }
+  for (let d = 1; d <= days; d++) {
+    const date = new Date(calYear, calMonth, d);
+    grid.appendChild(makeCell(date, false, today, prDates));
+  }
+  // fill remaining
+  const total = grid.children.length;
+  const remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= remainder; d++) {
+    const date = new Date(calYear, calMonth+1, d);
+    grid.appendChild(makeCell(date, true, today, prDates));
+  }
+}
 
-        function deleteAllData() { if(confirm("초기화 하시겠습니까?")) { workoutData={}; prDataList=[]; updateAndSync(); } }
+function makeCell(date, otherMonth, today, prDates) {
+  const key = dateKey(date);
+  const workouts = state.workouts[key] || [];
+  const cell = document.createElement('div');
+  cell.className = 'cal-cell' +
+    (otherMonth ? ' other-month' : '') +
+    (key === today ? ' today' : '') +
+    (key === selectedDate ? ' selected' : '');
 
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (session && session.user) {
-                currentUser = session.user;
-                document.getElementById('login-overlay').classList.add('hidden');
-                const { data } = await supabaseClient.from('user_data').select('*').eq('user_id', currentUser.id).single();
-                if (data) { workoutData = data.workout_data || {}; prDataList = data.pr_data || []; }
-                applyLanguage(); renderAll(); changeTimerMode();
-            } else {
-                currentUser = null; document.getElementById('login-overlay').classList.remove('hidden'); workoutData = {}; prDataList = [];
-            }
-        });
+  const num = document.createElement('div');
+  num.className = 'cell-num';
+  num.textContent = date.getDate();
+  cell.appendChild(num);
 
-    </script>
+  if (workouts.length > 0) {
+    const dots = document.createElement('div');
+    dots.className = 'cell-dots';
+    const types = [...new Set(workouts.map(w => w.type))];
+    types.forEach(t => {
+      const dot = document.createElement('div');
+      dot.className = 'cell-dot ' + (t === 'crossfit' ? 'dot-cf' : t === 'run' ? 'dot-run' : 'dot-lift');
+      dots.appendChild(dot);
+    });
+    cell.appendChild(dots);
+  }
+
+  if (prDates.has(key)) cell.classList.add('has-pr');
+
+  cell.onclick = () => {
+    selectedDate = key;
+    renderCal();
+    renderDayDetail();
+  };
+  return cell;
+}
+
+function renderDayDetail() {
+  if (!selectedDate) return;
+  const [y,m,d] = selectedDate.split('-');
+  const date = new Date(+y, +m-1, +d);
+  document.getElementById('detail-date-label').textContent =
+    date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+
+  const list = document.getElementById('workout-list');
+  const workouts = state.workouts[selectedDate] || [];
+  if (workouts.length === 0) {
+    list.innerHTML = '<div class="empty-state">NO WORKOUT LOGGED</div>';
+    return;
+  }
+  list.innerHTML = '';
+  workouts.forEach((w, idx) => {
+    const card = document.createElement('div');
+    card.className = 'workout-card';
+
+    const badge = document.createElement('div');
+    badge.className = 'workout-type-badge ' + (w.type==='crossfit'?'badge-cf':w.type==='run'?'badge-run':'badge-lift');
+    badge.textContent = w.type === 'crossfit' ? 'CF' : w.type === 'run' ? 'RUN' : 'LIFT';
+
+    const info = document.createElement('div');
+    info.className = 'workout-info';
+    info.innerHTML = `<div class="workout-name">${w.name}</div>${w.note ? `<div class="workout-note">${w.note}</div>` : ''}`;
+
+    const toggle = document.createElement('button');
+    toggle.className = 'done-toggle' + (w.done ? ' done' : '');
+    toggle.innerHTML = w.done ? '✓' : '';
+    toggle.onclick = () => {
+      state.workouts[selectedDate][idx].done = !state.workouts[selectedDate][idx].done;
+      saveState(); renderCal(); renderDayDetail();
+    };
+
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.innerHTML = '✕';
+    del.onclick = () => {
+      state.workouts[selectedDate].splice(idx, 1);
+      if (!state.workouts[selectedDate].length) delete state.workouts[selectedDate];
+      saveState(); renderCal(); renderDayDetail();
+    };
+
+    card.appendChild(badge);
+    card.appendChild(info);
+    card.appendChild(toggle);
+    card.appendChild(del);
+    list.appendChild(card);
+  });
+}
+
+// Workout Modal
+let selectedType = null;
+function openWorkoutModal() {
+  if (!selectedDate) return;
+  selectedType = null;
+  document.getElementById('wk-name').value = '';
+  document.getElementById('wk-note').value = '';
+  ['cf','run','lift'].forEach(t => document.getElementById('type-'+t).className = 'type-btn');
+  document.getElementById('workout-modal').classList.add('open');
+}
+function selectType(type) {
+  selectedType = type;
+  document.getElementById('type-cf').className = 'type-btn' + (type==='crossfit' ? ' active-cf' : '');
+  document.getElementById('type-run').className = 'type-btn' + (type==='run' ? ' active-run' : '');
+  document.getElementById('type-lift').className = 'type-btn' + (type==='lifting' ? ' active-lift' : '');
+}
+function addWorkout() {
+  const name = document.getElementById('wk-name').value.trim();
+  if (!selectedType || !name) return;
+  if (!state.workouts[selectedDate]) state.workouts[selectedDate] = [];
+  state.workouts[selectedDate].push({ type: selectedType, name, note: document.getElementById('wk-note').value.trim(), done: false });
+  saveState();
+  closeModal('workout-modal');
+  renderCal();
+  renderDayDetail();
+}
+
+// ═══════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════
+let timerMode = 'timecap';
+let timerInterval = null;
+let timerRunning = false;
+let timerSeconds = 0;
+let timerTotalSeconds = 0;
+let roundCount = 0;
+
+// EMOM / TABATA state
+let emomInterval = 60;
+let emomRounds = 10;
+let emomCurrentRound = 0;
+let emomRoundSeconds = 0;
+
+let tabataWork = 20;
+let tabataRest = 10;
+let tabataRounds = 8;
+let tabataCurrentRound = 0;
+let tabataPhase = 'work';
+let tabataSeconds = 0;
+
+// TIME CAP / FOR TIME / AMRAP settings (shared min/sec input)
+let capMinutes = 10;
+let capSeconds2 = 0;
+
+function setTimerMode(mode, btn) {
+  timerMode = mode;
+  document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  resetTimer();
+  renderTimerSettings();
+}
+
+function renderTimerSettings() {
+  const s = document.getElementById('timer-settings');
+  document.getElementById('tabata-status').textContent = '';
+
+  if (timerMode === 'timecap') {
+    s.innerHTML = `
+      ${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}
+      ${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}
+    `;
+    document.getElementById('timer-sub-label').textContent = 'COUNTDOWN · STOPS AT ZERO';
+  } else if (timerMode === 'fortime') {
+    s.innerHTML = `
+      ${numRow('CAP MIN', capMinutes, 'capMinutes', 0, 99)}
+      ${numRow('CAP SEC', capSeconds2, 'capSeconds2', 0, 59)}
+    `;
+    document.getElementById('timer-sub-label').textContent = 'COUNT UP · TAP STOP WHEN DONE';
+  } else if (timerMode === 'amrap') {
+    s.innerHTML = `
+      ${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}
+      ${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}
+    `;
+    document.getElementById('timer-sub-label').textContent = 'AS MANY ROUNDS AS POSSIBLE';
+  } else if (timerMode === 'emom') {
+    s.innerHTML = `
+      ${numRow('INTERVAL (sec)', emomInterval, 'emomInterval', 10, 300)}
+      ${numRow('ROUNDS', emomRounds, 'emomRounds', 1, 60)}
+    `;
+    document.getElementById('timer-sub-label').textContent = 'EVERY MINUTE ON THE MINUTE';
+  } else if (timerMode === 'tabata') {
+    s.innerHTML = `
+      ${numRow('WORK (sec)', tabataWork, 'tabataWork', 5, 60)}
+      ${numRow('REST (sec)', tabataRest, 'tabataRest', 5, 60)}
+      ${numRow('ROUNDS', tabataRounds, 'tabataRounds', 1, 30)}
+    `;
+    document.getElementById('timer-sub-label').textContent = 'WORK / REST';
+  }
+  bindNumInputs();
+}
+
+function numRow(label, val, key, min, max) {
+  return `<div class="timer-row">
+    <div class="timer-row-label">${label}</div>
+    <div class="num-input-group">
+      <button class="num-btn" onclick="adjustNum('${key}', -1, ${min}, ${max})">−</button>
+      <div class="num-val" id="num-${key}">${String(val).padStart(2,'0')}</div>
+      <button class="num-btn" onclick="adjustNum('${key}', 1, ${min}, ${max})">+</button>
+    </div>
+  </div>`;
+}
+
+function bindNumInputs() {} // using onclick inline
+
+function adjustNum(key, dir, min, max) {
+  const map = { capMinutes, capSeconds2, emomInterval, emomRounds, tabataWork, tabataRest, tabataRounds };
+  let val = map[key] + dir;
+  if (val < min) val = min;
+  if (val > max) val = max;
+  if (key === 'capMinutes') capMinutes = val;
+  if (key === 'capSeconds2') capSeconds2 = val;
+  if (key === 'emomInterval') emomInterval = val;
+  if (key === 'emomRounds') emomRounds = val;
+  if (key === 'tabataWork') tabataWork = val;
+  if (key === 'tabataRest') tabataRest = val;
+  if (key === 'tabataRounds') tabataRounds = val;
+  const el = document.getElementById('num-'+key);
+  if (el) el.textContent = String(val).padStart(2,'0');
+}
+
+let timerStarted = false;
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('start-btn').textContent = 'RESUME';
+  } else {
+    if (!timerStarted) { initTimerValues(); timerStarted = true; }
+    timerRunning = true;
+    document.getElementById('start-btn').textContent = 'PAUSE';
+    if (timerMode === 'timecap' || timerMode === 'amrap') {
+      timerInterval = setInterval(tickCountdown, 1000);
+    } else if (timerMode === 'fortime') {
+      timerInterval = setInterval(tickCountup, 1000);
+    } else if (timerMode === 'emom') {
+      timerInterval = setInterval(tickEmom, 1000);
+    } else if (timerMode === 'tabata') {
+      timerInterval = setInterval(tickTabata, 1000);
+    }
+  }
+}
+
+function initTimerValues() {
+  if (timerMode === 'timecap' || timerMode === 'amrap') {
+    timerSeconds = capMinutes * 60 + capSeconds2;
+    timerTotalSeconds = timerSeconds;
+    updateFace(timerSeconds);
+    document.getElementById('timer-sub-label').textContent =
+      timerMode === 'amrap' ? 'AS MANY ROUNDS AS POSSIBLE' : 'COUNTDOWN · STOPS AT ZERO';
+  } else if (timerMode === 'fortime') {
+    timerSeconds = 0;
+    timerTotalSeconds = capMinutes * 60 + capSeconds2; // cap limit
+    updateFace(0);
+    document.getElementById('timer-sub-label').textContent = 'COUNT UP · TAP STOP WHEN DONE';
+  } else if (timerMode === 'emom') {
+    emomCurrentRound = 1;
+    emomRoundSeconds = emomInterval;
+    updateFace(emomRoundSeconds);
+    document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
+  } else if (timerMode === 'tabata') {
+    tabataCurrentRound = 1;
+    tabataPhase = 'work';
+    tabataSeconds = tabataWork;
+    updateFace(tabataSeconds);
+    setTabataStatus('WORK');
+    document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`;
+  }
+}
+
+function tickCountdown() {
+  timerSeconds--;
+  if (timerSeconds <= 0) {
+    timerSeconds = 0;
+    updateFace(0);
+    endTimer('TIME!');
+    return;
+  }
+  updateFace(timerSeconds);
+}
+
+function tickCountup() {
+  timerSeconds++;
+  updateFace(timerSeconds);
+  // stop at cap if set
+  if (timerTotalSeconds > 0 && timerSeconds >= timerTotalSeconds) {
+    endTimer('TIME CAP!');
+  }
+}
+
+function tickEmom() {
+  emomRoundSeconds--;
+  if (emomRoundSeconds <= 0) {
+    emomCurrentRound++;
+    if (emomCurrentRound > emomRounds) { endTimer('DONE!'); return; }
+    emomRoundSeconds = emomInterval;
+    document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
+  }
+  updateFace(emomRoundSeconds);
+}
+
+function tickTabata() {
+  tabataSeconds--;
+  if (tabataSeconds <= 0) {
+    if (tabataPhase === 'work') {
+      tabataPhase = 'rest';
+      tabataSeconds = tabataRest;
+      setTabataStatus('REST');
+    } else {
+      tabataCurrentRound++;
+      if (tabataCurrentRound > tabataRounds) { endTimer('DONE!'); return; }
+      tabataPhase = 'work';
+      tabataSeconds = tabataWork;
+      setTabataStatus('WORK');
+      document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`;
+      roundCount++;
+      document.getElementById('round-display').textContent = roundCount;
+    }
+  }
+  updateFace(tabataSeconds);
+}
+
+function setTabataStatus(label) {
+  const el = document.getElementById('tabata-status');
+  el.textContent = label;
+  el.className = 'tabata-status ' + label.toLowerCase();
+}
+
+function updateFace(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  document.getElementById('timer-face').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function endTimer(msg) {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerStarted = false;
+  document.getElementById('start-btn').textContent = 'START';
+  document.getElementById('timer-face').textContent = msg;
+  timerSeconds = 0; emomRoundSeconds = 0; tabataSeconds = 0;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerStarted = false;
+  timerSeconds = 0; emomRoundSeconds = 0; tabataSeconds = 0;
+  emomCurrentRound = 0; tabataCurrentRound = 0;
+  document.getElementById('start-btn').textContent = 'START';
+  document.getElementById('timer-face').textContent = '00:00';
+  const labels = {
+    timecap: 'COUNTDOWN · STOPS AT ZERO',
+    fortime: 'COUNT UP · TAP STOP WHEN DONE',
+    amrap: 'AS MANY ROUNDS AS POSSIBLE',
+    emom: 'EVERY MINUTE ON THE MINUTE',
+    tabata: 'WORK / REST'
+  };
+  document.getElementById('timer-sub-label').textContent = labels[timerMode] || 'SET TIME AND START';
+  document.getElementById('tabata-status').textContent = '';
+}
+
+function adjustRound(dir) {
+  roundCount = Math.max(0, roundCount + dir);
+  document.getElementById('round-display').textContent = roundCount;
+}
+
+// ═══════════════════════════════════
+//  PR
+// ═══════════════════════════════════
+let selectedPRType = null;
+let prFilter = 'all';
+
+function openPRModal() {
+  selectedPRType = null;
+  document.getElementById('pr-exercise').value = '';
+  document.getElementById('pr-record').value = '';
+  document.getElementById('pr-date').value = new Date().toISOString().slice(0,10);
+  ['cf','run','lift'].forEach(t => document.getElementById('pr-type-'+t).className = 'type-btn');
+  document.getElementById('pr-modal').classList.add('open');
+}
+function selectPRType(type) {
+  selectedPRType = type;
+  document.getElementById('pr-type-cf').className = 'type-btn' + (type==='crossfit' ? ' active-cf' : '');
+  document.getElementById('pr-type-run').className = 'type-btn' + (type==='run' ? ' active-run' : '');
+  document.getElementById('pr-type-lift').className = 'type-btn' + (type==='lifting' ? ' active-lift' : '');
+}
+function addPR() {
+  const exercise = document.getElementById('pr-exercise').value.trim();
+  const date = document.getElementById('pr-date').value;
+  const record = document.getElementById('pr-record').value.trim();
+  if (!selectedPRType || !exercise || !date || !record) return;
+  state.prs.push({ type: selectedPRType, exercise, date, record });
+  state.prs.sort((a,b) => b.date.localeCompare(a.date));
+  saveState();
+  closeModal('pr-modal');
+  renderPR();
+  renderCal(); // update PR markers on calendar
+}
+function filterPR(type, btn) {
+  prFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPR();
+}
+function renderPR() {
+  const list = document.getElementById('pr-list');
+  const prs = prFilter === 'all' ? state.prs : state.prs.filter(p => p.type === prFilter);
+  if (prs.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding:30px 0">NO PR RECORDS YET</div>';
+    return;
+  }
+  list.innerHTML = '';
+  prs.forEach((pr, idx) => {
+    const card = document.createElement('div');
+    card.className = 'pr-card';
+    const realIdx = state.prs.indexOf(pr);
+    card.innerHTML = `
+      <div class="pr-card-left">
+        <div class="pr-exercise">${pr.exercise}</div>
+        <div class="pr-meta">
+          <div class="workout-type-badge ${pr.type==='crossfit'?'badge-cf':pr.type==='run'?'badge-run':'badge-lift'}" style="font-size:8px;padding:2px 6px">
+            ${pr.type==='crossfit'?'CF':pr.type==='run'?'RUN':'LIFT'}
+          </div>
+          <div class="pr-date">${pr.date}</div>
+        </div>
+      </div>
+      <div class="pr-record">${pr.record}</div>
+      <button class="delete-btn" onclick="deletePR(${realIdx})">✕</button>
+    `;
+    list.appendChild(card);
+  });
+}
+function deletePR(idx) {
+  state.prs.splice(idx, 1);
+  saveState();
+  renderPR();
+  renderCal();
+}
+
+// ═══════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+initCal();
+renderTimerSettings();
+renderPR();
+</script>
 </body>
 </html>
