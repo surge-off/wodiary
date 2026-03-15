@@ -2,802 +2,1474 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WRKOUT</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>LOOT</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --fg: #0a0a0a;
-    --fg-muted: #666666;
-    --fg-faint: #cccccc;
+    --bg2: #f5f5f5;
+    --bg3: #ebebeb;
+    --text: #0a0a0a;
+    --text2: #555555;
+    --text3: #999999;
     --border: #e0e0e0;
-    --border-dark: #333333;
     --accent: #0a0a0a;
-    --surface: #f7f7f7;
-    --danger: #cc0000;
-    --success: #006600;
+    --accent2: #333333;
+    --dot-planned: transparent;
+    --dot-done: #0a0a0a;
+    --pr-dot: #0a0a0a;
+    --red: #d0021b;
+    --green: #2d7d46;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow2: 0 4px 20px rgba(0,0,0,0.1);
+    --radius: 12px;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
   }
-
-  /* ── DARK MODE VARIABLES ── */
-  body.dark-theme {
-    --bg: #121212;
-    --fg: #ffffff;
-    --fg-muted: #a0a0a0;
-    --fg-faint: #444444;
+  [data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg2: #141414;
+    --bg3: #1e1e1e;
+    --text: #f0f0f0;
+    --text2: #aaaaaa;
+    --text3: #666666;
     --border: #2a2a2a;
-    --border-dark: #555555;
-    --accent: #ffffff;
-    --surface: #1e1e1e;
+    --accent: #f0f0f0;
+    --accent2: #cccccc;
+    --dot-planned: transparent;
+    --dot-done: #f0f0f0;
+    --pr-dot: #f0f0f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow2: 0 4px 20px rgba(0,0,0,0.5);
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
-    color: var(--fg);
-    min-height: 100vh;
-    max-width: 430px;
-    margin: 0 auto;
-    position: relative;
+    color: var(--text);
+    min-height: 100dvh;
     overflow-x: hidden;
     transition: background 0.3s, color 0.3s;
   }
 
-  /* ── SCREENS ── */
-  .screen {
-    display: none;
-    min-height: 100vh;
-    padding-bottom: 80px;
-    animation: fadeIn 0.18s ease;
+  /* ── SPLASH ── */
+  #splash {
+    position: fixed; inset: 0;
+    background: #0a0a0a;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    overflow: hidden;
   }
-  .screen.active { display: block; }
+  #splash.hide { animation: splashOut 0.6s ease forwards; }
+  @keyframes splashOut { to { opacity: 0; pointer-events: none; transform: scale(1.03); } }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* ── HEADER ── */
-  .app-header {
-    padding: 20px 20px 10px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    border-bottom: 1.5px solid var(--fg);
+  .splash-lines {
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 64px;
   }
-  .header-left { display: flex; align-items: baseline; gap: 10px; }
-  .app-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: 4px;
+  .splash-line {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(11px, 3vw, 14px);
+    color: #ffffff;
+    opacity: 0;
+    transform: translateX(-18px);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+  .splash-line:nth-child(1) { animation: lineIn 0.5s 0.3s ease forwards; }
+  .splash-line:nth-child(2) { animation: lineIn 0.5s 0.7s ease forwards; }
+  .splash-line:nth-child(3) { animation: lineIn 0.5s 1.1s ease forwards; }
+  .splash-line:nth-child(4) { animation: lineIn 0.5s 1.5s ease forwards; }
+  @keyframes lineIn { to { opacity: 1; transform: translateX(0); } }
+
+  .splash-line span { color: #888; }
+
+  .splash-logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(72px, 22vw, 140px);
+    color: #ffffff;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    animation: logoIn 0.7s 2.1s cubic-bezier(0.16,1,0.3,1) forwards;
     line-height: 1;
   }
-  .app-date {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--fg-muted);
-    letter-spacing: 1px;
+  @keyframes logoIn {
+    from { opacity: 0; transform: scale(0.85) translateY(10px); letter-spacing: 0.4em; }
+    to { opacity: 1; transform: scale(1) translateY(0); letter-spacing: 0.12em; }
   }
-  .settings-btn {
-    background: none; border: none; cursor: pointer; color: var(--fg);
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100dvh; padding-bottom: 80px; }
+  #app.active { display: block; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .topbar-logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 28px;
+    letter-spacing: 0.14em;
+    color: var(--text);
+  }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg2);
     display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+    font-size: 15px;
   }
+  .icon-btn:hover { background: var(--bg3); }
+  .icon-btn:active { transform: scale(0.94); }
 
   /* ── BOTTOM NAV ── */
   .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 430px;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--bg);
-    border-top: 1.5px solid var(--fg);
+    border-top: 1px solid var(--border);
     display: flex;
-    z-index: 100;
+    z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transition: background 0.3s, border-color 0.3s;
   }
-  .nav-btn {
+  .nav-item {
     flex: 1;
-    padding: 14px 0 12px;
-    background: none;
-    border: none;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 0 8px;
     cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    transition: color var(--transition);
+    color: var(--text3);
     gap: 3px;
-    font-family: 'DM Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--fg-muted);
-    text-transform: uppercase;
-    transition: all 0.15s;
-    border-right: 1px solid var(--border);
   }
-  .nav-btn:last-child { border-right: none; }
-  .nav-btn.active { color: var(--fg); background: var(--fg); color: var(--bg); }
-  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-item.active { color: var(--text); }
+  .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
 
-  /* ── CALENDAR SCREEN ── */
-  .cal-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px 0;
+  /* ── VIEWS ── */
+  .view { display: none; padding: 0 0 12px; animation: fadeUp 0.25s ease; }
+  .view.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── CALENDAR VIEW ── */
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 10px;
   }
-  .cal-month { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; }
+  .cal-month {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 30px;
+    letter-spacing: 0.08em;
+  }
+  .cal-nav { display: flex; gap: 8px; }
   .cal-nav-btn {
-    background: none; border: 1.5px solid var(--fg);
-    width: 32px; height: 32px; cursor: pointer; color: var(--fg);
-    font-size: 14px; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px;
+    transition: background var(--transition);
   }
-  .cal-nav-btn:hover { background: var(--fg); color: var(--bg); }
+  .cal-nav-btn:hover { background: var(--bg3); }
 
-  /* 월간 통계 (신규 기능) */
-  .monthly-stats {
-    display: flex; justify-content: center; gap: 15px;
-    padding: 8px 20px 10px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px;
+  .cal-grid {
+    padding: 0 16px;
   }
-  .stat-item { display: flex; align-items: center; gap: 4px; color: var(--fg-muted); }
-  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
-
-  .cal-grid-header {
-    display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px;
-    border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);
+  .cal-days-header {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    text-align: center; margin-bottom: 4px;
   }
-  .cal-day-label {
-    text-align: center; padding: 8px 0; font-family: 'DM Mono', monospace;
-    font-size: 10px; letter-spacing: 1px; color: var(--fg-muted);
+  .cal-days-header span {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    padding: 4px 0;
+    text-transform: uppercase;
   }
-
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 10px; gap: 2px; }
-  .cal-cell {
-    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: flex-start; padding: 4px 2px 2px; cursor: pointer;
-    border: 1px solid transparent; transition: all 0.12s; position: relative; min-height: 44px;
+  .cal-days {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
   }
-  .cal-cell:hover { border-color: var(--border-dark); }
-  .cal-cell.today { border-color: var(--fg); }
-  .cal-cell.has-pr::before { content: '★'; font-size: 8px; color: var(--fg-muted); position: absolute; top: 2px; right: 2px; }
-  .cal-cell .cell-num { font-family: 'DM Mono', monospace; font-size: 12px; }
-  .cal-cell.other-month .cell-num { color: var(--fg-faint); }
-  .cal-cell.selected { background: var(--fg); }
-  .cal-cell.selected .cell-num { color: var(--bg); }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: background var(--transition);
+    gap: 3px;
+  }
+  .cal-day:hover { background: var(--bg2); }
+  .cal-day.today .day-num {
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+  }
+  .cal-day.other-month .day-num { color: var(--text3); }
+  .cal-day.selected { background: var(--bg2); outline: 1.5px solid var(--border); }
+  .day-num { font-size: 13px; font-weight: 400; line-height: 1; }
+  .day-dots { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; justify-content: center; min-height: 8px; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    border: 1.5px solid var(--text);
+  }
+  .dot.done { background: var(--dot-done); }
+  .dot.pr { background: var(--text); border-color: var(--text); width: 4px; height: 4px; }
 
-  .cell-dots { display: flex; gap: 2px; margin-top: 2px; }
-  .cell-dot { width: 4px; height: 4px; border-radius: 50%; }
-  .dot-cf { background: #c00; } .dot-run { background: #06a; } .dot-lift { background: #660; }
-
-  /* ── DAY DETAIL ── */
-  .day-detail { border-top: 1.5px solid var(--fg); padding: 16px 20px; }
-  .day-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .day-detail-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; }
-  .add-workout-btn { background: var(--fg); color: var(--bg); border: none; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; }
-
-  .workout-list { display: flex; flex-direction: column; gap: 8px; }
-  .workout-card { border: 1px solid var(--border); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
-  .workout-type-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; padding: 3px 8px; border: 1px solid; text-transform: uppercase; flex-shrink: 0; }
-  .badge-cf { border-color: #c00; color: #c00; } .badge-run { border-color: #06a; color: #06a; } .badge-lift { border-color: #660; color: #660; }
-
+  /* ── DAY PANEL ── */
+  .day-panel {
+    margin: 10px 16px 0;
+    background: var(--bg2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .day-panel-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .day-panel-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .day-panel-body { padding: 14px 16px; }
+  .workout-list { display: flex; flex-direction: column; gap: 10px; }
+  .workout-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .workout-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+    background: var(--dot-planned);
+    transition: background var(--transition);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .workout-check.done {
+    background: var(--dot-done);
+  }
+  .workout-check.done::after {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
   .workout-info { flex: 1; }
-  .workout-name { font-size: 13px; font-weight: 500; }
-  .workout-note { font-size: 11px; color: var(--fg-muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-  .done-toggle { width: 24px; height: 24px; border: 1.5px solid var(--border-dark); background: none; color: var(--fg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: all 0.15s; }
-  .done-toggle.done { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-  .delete-btn { background: none; border: none; color: var(--fg-faint); cursor: pointer; font-size: 16px; padding: 2px 4px; transition: color 0.15s; }
-  .delete-btn:hover { color: var(--danger); }
-  .empty-state { text-align: center; padding: 24px; color: var(--fg-muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; }
+  .workout-type {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 2px;
+  }
+  .workout-name { font-size: 14px; font-weight: 500; }
+  .workout-note { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .workout-del {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 50%;
+    color: var(--text3); font-size: 16px;
+    transition: color var(--transition), background var(--transition);
+  }
+  .workout-del:hover { color: var(--red); background: rgba(208,2,27,0.08); }
+  .btn-add-workout {
+    width: 100%; padding: 10px;
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 8px;
+  }
+  .btn-add-workout:hover { border-color: var(--text); background: var(--bg3); }
 
-  /* ── MODALS ── */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--bg); width: 100%; max-width: 430px; border-top: 2px solid var(--fg); padding: 20px; animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
-  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  /* ── TIMER VIEW ── */
+  .timer-view { padding: 0 16px; }
+  .timer-modes {
+    display: flex; gap: 6px;
+    padding: 16px 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .timer-modes::-webkit-scrollbar { display: none; }
+  .timer-mode-btn {
+    padding: 7px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg2);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition);
+    color: var(--text2);
+  }
+  .timer-mode-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
 
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
-  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--fg-muted); }
+  .timer-display {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 20px 24px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .timer-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .timer-time {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(64px, 18vw, 88px);
+    letter-spacing: 0.06em;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.2s;
+  }
+  .timer-time.warning { color: var(--red); }
+  .timer-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+  .round-display {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px;
+    margin-top: 14px;
+  }
+  .round-count {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 40px;
+    letter-spacing: 0.1em;
+  }
+  .round-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg3);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background var(--transition), transform var(--transition);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+  }
+  .round-btn:active { transform: scale(0.9); background: var(--bg2); }
 
+  .timer-config {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .config-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--text2);
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+  .config-inputs { display: flex; gap: 6px; align-items: center; }
+  .time-input {
+    width: 52px;
+    text-align: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 4px;
+    font-size: 16px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .time-input::-webkit-inner-spin-button,
+  .time-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .time-input:focus { outline: 1.5px solid var(--text); }
+  .config-sep { font-family: 'DM Mono', monospace; font-size: 18px; color: var(--text2); }
+
+  .timer-controls { display: flex; gap: 10px; }
+  .timer-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    transition: all var(--transition);
+    font-weight: 500;
+  }
+  .timer-btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .timer-btn.primary:hover { opacity: 0.85; }
+  .timer-btn.secondary { background: var(--bg2); color: var(--text); }
+  .timer-btn.secondary:hover { background: var(--bg3); }
+  .timer-btn:active { transform: scale(0.97); }
+
+  /* ── PR VIEW ── */
+  .pr-view { padding: 0 16px; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0 12px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 24px;
+    letter-spacing: 0.08em;
+  }
+  .btn-add {
+    padding: 8px 16px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: opacity var(--transition);
+  }
+  .btn-add:hover { opacity: 0.8; }
+
+  .pr-category-tabs {
+    display: flex; gap: 6px; margin-bottom: 14px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .pr-category-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg2);
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text2);
+    transition: all var(--transition);
+  }
+  .cat-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .pr-list { display: flex; flex-direction: column; gap: 8px; }
+  .pr-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .pr-icon {
+    width: 36px; height: 36px;
+    background: var(--bg3);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .pr-info { flex: 1; }
+  .pr-exercise { font-size: 15px; font-weight: 500; }
+  .pr-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .pr-value {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 24px;
+    letter-spacing: 0.06em;
+    text-align: right;
+  }
+  .pr-unit { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2); }
+  .pr-del-btn {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 50%;
+    color: var(--text3); font-size: 16px;
+  }
+  .pr-del-btn:hover { color: var(--red); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; animation: overlayIn 0.2s ease; }
+  @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 32px;
+    width: 100%; max-width: 480px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    animation: modalUp 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes modalUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+  }
   .form-group { margin-bottom: 14px; }
-  .form-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--fg-muted); display: block; margin-bottom: 6px; }
-  .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-dark); background: var(--bg); color: var(--fg); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--fg); }
-  .form-textarea { resize: vertical; min-height: 70px; }
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    transition: border-color var(--transition);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+  .form-select { appearance: none; cursor: pointer; }
+  .form-textarea { resize: vertical; min-height: 72px; }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .btn-cancel {
+    flex: 1; padding: 13px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .btn-save {
+    flex: 2; padding: 13px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--text);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity var(--transition);
+  }
+  .btn-save:hover { opacity: 0.85; }
 
-  .type-selector { display: flex; gap: 8px; }
-  .type-btn { flex: 1; padding: 10px; border: 1.5px solid var(--border); color: var(--fg); background: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; transition: all 0.15s; }
-  .type-btn.active-cf { border-color: #c00; background: #c00; color: #fff; }
-  .type-btn.active-run { border-color: #06a; background: #06a; color: #fff; }
-  .type-btn.active-lift { border-color: #660; background: #660; color: #fff; }
+  /* ── SETTINGS ── */
+  .settings-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 400;
+    backdrop-filter: blur(2px);
+  }
+  .settings-overlay.open { display: block; animation: overlayIn 0.2s ease; }
+  .settings-panel {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: min(320px, 88vw);
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    z-index: 401;
+  }
+  .settings-panel.open { transform: translateX(0); }
+  .settings-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 26px;
+    letter-spacing: 0.1em;
+    margin-bottom: 22px;
+  }
+  .settings-section { margin-bottom: 20px; }
+  .settings-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .settings-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: background var(--transition);
+  }
+  .settings-item:hover { background: var(--bg3); }
+  .settings-item-label { font-size: 14px; font-weight: 400; }
+  .toggle {
+    width: 44px; height: 24px;
+    background: var(--bg3);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.25s;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--text); border-color: var(--text); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: var(--bg);
+    border-radius: 50%;
+    top: 1px; left: 1px;
+    transition: transform 0.25s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+  .settings-close {
+    position: absolute; top: 20px; right: 20px;
+    font-size: 20px; cursor: pointer; color: var(--text2);
+  }
 
-  .submit-btn { width: 100%; padding: 14px; background: var(--fg); color: var(--bg); border: none; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; cursor: pointer; margin-top: 6px; transition: opacity 0.15s; }
-  .submit-btn:hover { opacity: 0.85; }
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-text { font-size: 13px; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
 
-  /* ── TIMER SCREEN ── */
-  .timer-mode-selector { display: flex; border-bottom: 1.5px solid var(--fg); border-top: 1px solid var(--border); }
-  .timer-mode-btn { flex: 1; padding: 10px 0; background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1.5px; color: var(--fg-muted); transition: all 0.15s; line-height: 1.2; }
-  .timer-mode-btn:last-child { border-right: none; }
-  .timer-mode-btn.active { background: var(--fg); color: var(--bg); }
+  /* ── WAKE LOCK INDICATOR ── */
+  .wakelock-indicator {
+    position: fixed; bottom: 88px; right: 14px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 300;
+  }
+  .wakelock-indicator.active { opacity: 1; }
 
-  .timer-display { padding: 30px 20px 20px; text-align: center; }
-  .timer-face { font-family: 'Bebas Neue', sans-serif; font-size: 88px; letter-spacing: 6px; line-height: 1; margin-bottom: 4px; color: var(--fg); }
-  .timer-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--fg-muted); text-transform: uppercase; }
-
-  .timer-settings { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
-  .timer-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); padding: 10px 14px; }
-  .timer-row-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--fg-muted); flex: 1; }
-  .num-input-group { display: flex; align-items: center; gap: 8px; }
-  .num-btn { width: 30px; height: 30px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
-  .num-btn:hover { background: var(--fg); color: var(--bg); }
-  .num-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; min-width: 44px; text-align: center; color: var(--fg); }
-
-  .timer-controls { padding: 0 20px 16px; display: flex; gap: 8px; }
-  .ctrl-btn { flex: 1; padding: 14px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; transition: all 0.15s; }
-  .ctrl-btn.primary { background: var(--fg); color: var(--bg); }
-  .ctrl-btn:hover:not(.primary) { background: var(--fg); color: var(--bg); }
-
-  .round-counter { margin: 0 20px; border: 1.5px solid var(--fg); padding: 16px; display: flex; align-items: center; justify-content: space-between; }
-  .round-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--fg-muted); }
-  .round-num { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; line-height: 1; }
-  .round-controls { display: flex; gap: 8px; }
-  .round-btn { width: 40px; height: 40px; border: 1.5px solid var(--fg); color: var(--fg); background: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
-  .round-btn:hover { background: var(--fg); color: var(--bg); }
-
-  .tabata-status { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; padding: 0 20px 10px; text-align: center; color: var(--fg-muted); }
-  .tabata-status.work { color: var(--danger); }
-  .tabata-status.rest { color: var(--success); }
-
-  /* ── PR SCREEN ── */
-  .pr-add-area { padding: 14px 20px; border-bottom: 1px solid var(--border); }
-  .pr-add-btn { width: 100%; padding: 12px; border: 1.5px dashed var(--border-dark); background: none; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; cursor: pointer; color: var(--fg-muted); transition: all 0.15s; }
-  .pr-add-btn:hover { border-color: var(--fg); color: var(--fg); background: var(--surface); }
-
-  .pr-filters { padding: 12px 20px; display: flex; gap: 6px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .filter-btn { padding: 5px 14px; border: 1px solid var(--border); color: var(--fg); background: none; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
-  .filter-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-
-  .pr-list { padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
-  .pr-card { border: 1px solid var(--border); padding: 14px; display: flex; align-items: center; gap: 12px; }
-  .pr-card-left { flex: 1; }
-  .pr-exercise { font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
-  .pr-meta { display: flex; gap: 10px; margin-top: 4px; align-items: center; }
-  .pr-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--fg-muted); }
-  .pr-record-wrap { text-align: right; }
-  .pr-record { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; line-height: 1; white-space: nowrap; }
-  .pr-unit { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--fg-muted); margin-left: 4px; }
-
-  /* ── SETTINGS MODAL ── */
-  .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-  .settings-row:last-child { border-bottom: none; }
-  .btn-outline { padding: 8px 12px; border: 1.5px solid var(--border-dark); background: none; color: var(--fg); cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; transition: all 0.15s; }
-  .btn-outline:hover { background: var(--fg); color: var(--bg); }
-  textarea.import-area { font-family: monospace; font-size: 10px; width: 100%; height: 80px; margin-top: 10px; display: none; }
+  /* ── MISC ── */
+  .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
+    color: var(--text2);
+    background: var(--bg2);
+  }
 </style>
 </head>
 <body>
 
-<div class="screen active" id="screen-cal">
-  <div class="app-header">
-    <div class="header-left">
-      <div class="app-logo">WRKOUT</div>
-      <div class="app-date" id="header-date"></div>
-    </div>
-    <button class="settings-btn" onclick="openSettings()">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-    </button>
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-lines">
+    <div class="splash-line"><span>▸</span> Level up in silence.</div>
+    <div class="splash-line"><span>▸</span> Obtain the unseen progress.</div>
+    <div class="splash-line"><span>▸</span> Own your daily grind.</div>
+    <div class="splash-line"><span>▸</span> Take your true reward.</div>
   </div>
-
-  <div class="cal-nav">
-    <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8592;</button>
-    <div class="cal-month" id="cal-month-label"></div>
-    <button class="cal-nav-btn" onclick="changeMonth(1)">&#8594;</button>
-  </div>
-  
-  <div class="monthly-stats" id="monthly-stats">
-    </div>
-
-  <div class="cal-grid-header">
-    <div class="cal-day-label">SUN</div><div class="cal-day-label">MON</div><div class="cal-day-label">TUE</div><div class="cal-day-label">WED</div><div class="cal-day-label">THU</div><div class="cal-day-label">FRI</div><div class="cal-day-label">SAT</div>
-  </div>
-  <div class="cal-grid" id="cal-grid"></div>
-
-  <div class="day-detail" id="day-detail">
-    <div class="day-detail-header">
-      <div class="day-detail-title" id="detail-date-label">SELECT A DATE</div>
-      <button class="add-workout-btn" onclick="openWorkoutModal()">+ ADD</button>
-    </div>
-    <div class="workout-list" id="workout-list">
-      <div class="empty-state">NO WORKOUT LOGGED</div>
-    </div>
-  </div>
+  <div class="splash-logo">LOOT</div>
 </div>
 
-<div class="screen" id="screen-timer">
-  <div class="app-header">
-    <div class="app-logo">TIMER</div>
-  </div>
-
-  <div class="timer-mode-selector">
-    <button class="timer-mode-btn active" onclick="setTimerMode('timecap', this)">TIME<br>CAP</button>
-    <button class="timer-mode-btn" onclick="setTimerMode('fortime', this)">FOR<br>TIME</button>
-    <button class="timer-mode-btn" onclick="setTimerMode('amrap', this)">AMRAP</button>
-    <button class="timer-mode-btn" onclick="setTimerMode('emom', this)">EMOM</button>
-    <button class="timer-mode-btn" onclick="setTimerMode('tabata', this)">TABATA</button>
-  </div>
-
-  <div class="timer-display">
-    <div class="timer-face" id="timer-face">00:00</div>
-    <div class="timer-label" id="timer-sub-label">SET TIME AND START</div>
-  </div>
-
-  <div class="tabata-status" id="tabata-status"></div>
-
-  <div class="timer-settings" id="timer-settings"></div>
-
-  <div class="timer-controls">
-    <button class="ctrl-btn primary" id="start-btn" onclick="toggleTimer()">START</button>
-    <button class="ctrl-btn" onclick="resetTimer()">RESET</button>
-  </div>
-
-  <div class="round-counter">
-    <div>
-      <div class="round-label">ROUNDS</div>
-      <div class="round-num" id="round-display">0</div>
-    </div>
-    <div class="round-controls">
-      <button class="round-btn" onclick="adjustRound(-1)">−</button>
-      <button class="round-btn" onclick="adjustRound(1)">+</button>
+<!-- APP -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">LOOT</div>
+    <div class="topbar-actions">
+      <div class="icon-btn" onclick="toggleSettings()" title="Settings">⚙</div>
     </div>
   </div>
-</div>
 
-<div class="screen" id="screen-pr">
-  <div class="app-header">
-    <div class="app-logo">PR</div>
-    <div class="app-date">PERSONAL RECORDS</div>
-  </div>
-
-  <div class="pr-add-area">
-    <button class="pr-add-btn" onclick="openPRModal()">＋ LOG NEW PR</button>
-  </div>
-
-  <div class="pr-filters">
-    <button class="filter-btn active" onclick="filterPR('all', this)">ALL</button>
-    <button class="filter-btn" onclick="filterPR('crossfit', this)">CROSSFIT</button>
-    <button class="filter-btn" onclick="filterPR('run', this)">RUN</button>
-    <button class="filter-btn" onclick="filterPR('lifting', this)">LIFTING</button>
-  </div>
-
-  <div class="pr-list" id="pr-list"></div>
-</div>
-
-<nav class="bottom-nav">
-  <button class="nav-btn active" onclick="showScreen('cal', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>CALENDAR
-  </button>
-  <button class="nav-btn" onclick="showScreen('timer', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="9" y1="2" x2="15" y2="2"/></svg>TIMER
-  </button>
-  <button class="nav-btn" onclick="showScreen('pr', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>PR
-  </button>
-</nav>
-
-<div class="modal-overlay" id="settings-modal">
-  <div class="modal">
-    <div class="modal-title">SETTINGS <button class="modal-close" onclick="closeModal('settings-modal')">✕</button></div>
-    <div class="settings-row">
-      <span class="form-label" style="margin:0;">DARK MODE</span>
-      <button class="btn-outline" id="theme-btn" onclick="toggleTheme()">TURN ON</button>
-    </div>
-    <div class="settings-row">
-      <span class="form-label" style="margin:0;">BACKUP DATA</span>
-      <button class="btn-outline" onclick="exportData()">EXPORT</button>
-    </div>
-    <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
-      <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-        <span class="form-label" style="margin:0;">RESTORE DATA</span>
-        <button class="btn-outline" onclick="showImportBox()">IMPORT</button>
-      </div>
-      <textarea id="import-data" class="form-textarea import-area" placeholder="Paste JSON data here..."></textarea>
-      <button id="import-submit" class="submit-btn" style="display:none; font-size:14px; padding:8px;" onclick="importData()">RESTORE NOW</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="workout-modal">
-  <div class="modal">
-    <div class="modal-title">ADD WORKOUT <button class="modal-close" onclick="closeModal('workout-modal')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">TYPE</label>
-      <div class="type-selector">
-        <button class="type-btn" id="type-cf" onclick="selectType('crossfit')">CF</button>
-        <button class="type-btn" id="type-run" onclick="selectType('run')">RUN</button>
-        <button class="type-btn" id="type-lift" onclick="selectType('lifting')">LIFT</button>
+  <!-- CALENDAR VIEW -->
+  <div id="view-calendar" class="view active">
+    <div class="cal-header">
+      <div class="cal-month" id="cal-month-label">MARCH 2026</div>
+      <div class="cal-nav">
+        <div class="cal-nav-btn" onclick="changeMonth(-1)">‹</div>
+        <div class="cal-nav-btn" onclick="changeMonth(1)">›</div>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">WORKOUT NAME</label><input class="form-input" id="wk-name" placeholder="e.g. Fran, 5K, Back Squat"></div>
-    <div class="form-group"><label class="form-label">NOTES / RX</label><textarea class="form-textarea" id="wk-note" placeholder="Weight, distance, details…"></textarea></div>
-    <button class="submit-btn" onclick="addWorkout()">ADD WORKOUT</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="pr-modal">
-  <div class="modal">
-    <div class="modal-title">LOG PR <button class="modal-close" onclick="closeModal('pr-modal')">✕</button></div>
-    <div class="form-group">
-      <label class="form-label">TYPE</label>
-      <div class="type-selector">
-        <button class="type-btn" id="pr-type-cf" onclick="selectPRType('crossfit')">CF</button>
-        <button class="type-btn" id="pr-type-run" onclick="selectPRType('run')">RUN</button>
-        <button class="type-btn" id="pr-type-lift" onclick="selectPRType('lifting')">LIFT</button>
+    <div class="cal-grid">
+      <div class="cal-days-header">
+        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
       </div>
+      <div class="cal-days" id="cal-days"></div>
     </div>
-    <div class="form-group"><label class="form-label">EXERCISE</label><input class="form-input" id="pr-exercise" placeholder="e.g. Clean & Jerk, 1 Mile"></div>
-    <div class="form-group"><label class="form-label">DATE</label><input class="form-input" type="date" id="pr-date"></div>
-    <div class="form-group" style="display:flex; gap:10px;">
-      <div style="flex:2;"><label class="form-label">RECORD</label><input class="form-input" id="pr-record" placeholder="e.g. 100 / 4:32"></div>
-      <div style="flex:1;"><label class="form-label">UNIT</label>
-        <select class="form-select" id="pr-unit">
-          <option value="KG">KG</option><option value="LBS">LBS</option>
-          <option value="TIME">TIME</option><option value="REPS">REPS</option>
-        </select>
-      </div>
-    </div>
-    <button class="submit-btn" onclick="addPR()">SAVE PR</button>
+    <div id="day-panel-container"></div>
   </div>
-</div>
 
-<script>
-// ═══════════════════════════════════
-//  STATE & THEME
-// ═══════════════════════════════════
-let state = {
-  workouts: JSON.parse(localStorage.getItem('wrkout-workouts') || '{}'),
-  prs: JSON.parse(localStorage.getItem('wrkout-prs') || '[]'),
-};
-let isDark = localStorage.getItem('wrkout-theme') === 'dark';
-if (isDark) document.body.classList.add('dark-theme');
+  <!-- TIMER VIEW -->
+  <div id="view-timer" class="view">
+    <div class="timer-view">
+      <div class="timer-modes">
+        <div class="timer-mode-btn active" onclick="setTimerMode('fortime')">FOR TIME</div>
+        <div class="timer-mode-btn" onclick="setTimerMode('timecap')">TIME CAP</div>
+        <div class="timer-mode-btn" onclick="setTimerMode('amrap')">AMRAP</div>
+        <div class="timer-mode-btn" onclick="setTimerMode('emom')">EMOM</div>
+        <div class="timer-mode-btn" onclick="setTimerMode('tabata')">TABATA</div>
+      </div>
 
-function saveState() {
-  localStorage.setItem('wrkout-workouts', JSON.stringify(state.workouts));
-  localStorage.setItem('wrkout-prs', JSON.stringify(state.prs));
-}
+      <div class="timer-display">
+        <div class="timer-label" id="timer-mode-label">FOR TIME</div>
+        <div class="timer-time" id="timer-display">00:00</div>
+        <div class="timer-sub" id="timer-sub"></div>
+      </div>
 
-// ═══════════════════════════════════
-//  SETTINGS & DATA MANAGEMENT
-// ═══════════════════════════════════
-function openSettings() {
-  document.getElementById('theme-btn').textContent = isDark ? 'TURN OFF' : 'TURN ON';
-  document.getElementById('import-data').style.display = 'none';
-  document.getElementById('import-submit').style.display = 'none';
-  document.getElementById('import-data').value = '';
-  document.getElementById('settings-modal').classList.add('open');
-}
-function toggleTheme() {
-  isDark = !isDark;
-  document.body.classList.toggle('dark-theme', isDark);
-  localStorage.setItem('wrkout-theme', isDark ? 'dark' : 'light');
-  document.getElementById('theme-btn').textContent = isDark ? 'TURN OFF' : 'TURN ON';
-}
-function exportData() {
-  const dataStr = JSON.stringify(state);
-  navigator.clipboard.writeText(dataStr).then(() => alert('Data copied to clipboard! Save it somewhere safe.'));
-}
-function showImportBox() {
-  document.getElementById('import-data').style.display = 'block';
-  document.getElementById('import-submit').style.display = 'block';
-}
-function importData() {
-  try {
-    const imported = JSON.parse(document.getElementById('import-data').value);
-    if(imported.workouts && imported.prs) {
-      state = imported; saveState(); location.reload();
-    } else alert('Invalid Data Format');
-  } catch(e) { alert('Failed to parse JSON'); }
-}
-
-// ═══════════════════════════════════
-//  NAV
-// ═══════════════════════════════════
-function showScreen(id, btn) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-  btn.classList.add('active');
-  if (id === 'timer') renderTimerSettings();
-  if (id === 'pr') renderPR();
-}
-
-// ═══════════════════════════════════
-//  CALENDAR & STATS
-// ═══════════════════════════════════
-let calYear, calMonth, selectedDate;
-
-function initCal() {
-  const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); selectedDate = dateKey(now);
-  document.getElementById('header-date').textContent = now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }).toUpperCase();
-  renderCal(); renderDayDetail();
-}
-function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function changeMonth(dir) {
-  calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCal();
-}
-
-function renderCal() {
-  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-  document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
-
-  const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
-  const first = new Date(calYear, calMonth, 1).getDay();
-  const days = new Date(calYear, calMonth+1, 0).getDate();
-  const today = dateKey(new Date());
-  const prDates = new Set(state.prs.map(p => p.date));
-
-  // Update Monthly Stats
-  let counts = { cf:0, run:0, lift:0 };
-  for (let d = 1; d <= days; d++) {
-    const k = dateKey(new Date(calYear, calMonth, d));
-    if(state.workouts[k]) state.workouts[k].forEach(w => {
-      if(w.type === 'crossfit') counts.cf++; else if(w.type === 'run') counts.run++; else counts.lift++;
-    });
-  }
-  document.getElementById('monthly-stats').innerHTML = `
-    <div class="stat-item"><div class="stat-dot dot-cf"></div>CF: ${counts.cf}</div>
-    <div class="stat-item"><div class="stat-dot dot-run"></div>RUN: ${counts.run}</div>
-    <div class="stat-item"><div class="stat-dot dot-lift"></div>LIFT: ${counts.lift}</div>
-  `;
-
-  const prevDays = new Date(calYear, calMonth, 0).getDate();
-  for (let i = first-1; i >= 0; i--) grid.appendChild(makeCell(new Date(calYear, calMonth-1, prevDays-i), true, today, prDates));
-  for (let d = 1; d <= days; d++) grid.appendChild(makeCell(new Date(calYear, calMonth, d), false, today, prDates));
-  const remainder = grid.children.length % 7 === 0 ? 0 : 7 - (grid.children.length % 7);
-  for (let d = 1; d <= remainder; d++) grid.appendChild(makeCell(new Date(calYear, calMonth+1, d), true, today, prDates));
-}
-
-function makeCell(date, otherMonth, today, prDates) {
-  const key = dateKey(date); const workouts = state.workouts[key] || [];
-  const cell = document.createElement('div');
-  cell.className = 'cal-cell' + (otherMonth ? ' other-month' : '') + (key === today ? ' today' : '') + (key === selectedDate ? ' selected' : '');
-  cell.innerHTML = `<div class="cell-num">${date.getDate()}</div>`;
-  
-  if (workouts.length > 0) {
-    const dots = document.createElement('div'); dots.className = 'cell-dots';
-    [...new Set(workouts.map(w => w.type))].forEach(t => {
-      const dot = document.createElement('div');
-      dot.className = 'cell-dot ' + (t === 'crossfit' ? 'dot-cf' : t === 'run' ? 'dot-run' : 'dot-lift');
-      dots.appendChild(dot);
-    });
-    cell.appendChild(dots);
-  }
-  if (prDates.has(key)) cell.classList.add('has-pr');
-  cell.onclick = () => { selectedDate = key; renderCal(); renderDayDetail(); };
-  return cell;
-}
-
-function renderDayDetail() {
-  if (!selectedDate) return;
-  const [y,m,d] = selectedDate.split('-');
-  document.getElementById('detail-date-label').textContent = new Date(+y, +m-1, +d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
-  const list = document.getElementById('workout-list'); const workouts = state.workouts[selectedDate] || [];
-  if (workouts.length === 0) { list.innerHTML = '<div class="empty-state">NO WORKOUT LOGGED</div>'; return; }
-  list.innerHTML = '';
-  workouts.forEach((w, idx) => {
-    const card = document.createElement('div'); card.className = 'workout-card';
-    card.innerHTML = `
-      <div class="workout-type-badge ${w.type==='crossfit'?'badge-cf':w.type==='run'?'badge-run':'badge-lift'}">${w.type==='crossfit'?'CF':w.type==='run'?'RUN':'LIFT'}</div>
-      <div class="workout-info"><div class="workout-name">${w.name}</div>${w.note ? `<div class="workout-note">${w.note}</div>` : ''}</div>
-      <button class="done-toggle ${w.done ? 'done' : ''}" onclick="toggleDone(${idx})">${w.done ? '✓' : ''}</button>
-      <button class="delete-btn" onclick="delWorkout(${idx})">✕</button>
-    `;
-    list.appendChild(card);
-  });
-}
-function toggleDone(idx) { state.workouts[selectedDate][idx].done = !state.workouts[selectedDate][idx].done; saveState(); renderCal(); renderDayDetail(); }
-function delWorkout(idx) { state.workouts[selectedDate].splice(idx, 1); if (!state.workouts[selectedDate].length) delete state.workouts[selectedDate]; saveState(); renderCal(); renderDayDetail(); }
-
-let selectedType = null;
-function openWorkoutModal() {
-  selectedType = null; document.getElementById('wk-name').value = ''; document.getElementById('wk-note').value = '';
-  ['cf','run','lift'].forEach(t => document.getElementById('type-'+t).className = 'type-btn');
-  document.getElementById('workout-modal').classList.add('open');
-}
-function selectType(type) {
-  selectedType = type;
-  document.getElementById('type-cf').className = 'type-btn' + (type==='crossfit' ? ' active-cf' : '');
-  document.getElementById('type-run').className = 'type-btn' + (type==='run' ? ' active-run' : '');
-  document.getElementById('type-lift').className = 'type-btn' + (type==='lifting' ? ' active-lift' : '');
-}
-function addWorkout() {
-  const name = document.getElementById('wk-name').value.trim();
-  if (!selectedType || !name) return;
-  if (!state.workouts[selectedDate]) state.workouts[selectedDate] = [];
-  state.workouts[selectedDate].push({ type: selectedType, name, note: document.getElementById('wk-note').value.trim(), done: false });
-  saveState(); closeModal('workout-modal'); renderCal(); renderDayDetail();
-}
-
-// ═══════════════════════════════════
-//  AUDIO & WAKELOCK 
-// ═══════════════════════════════════
-let audioCtx;
-function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if(audioCtx.state === 'suspended') audioCtx.resume(); }
-function playBeep(type) {
-  if (!audioCtx) return;
-  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.type = 'sine'; osc.frequency.value = type === 'high' ? 880 : 440;
-  osc.start();
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (type === 'high' ? 0.5 : 0.15));
-  osc.stop(audioCtx.currentTime + (type === 'high' ? 0.5 : 0.15));
-}
-
-let wakeLock = null;
-async function requestWakeLock() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
-function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release(); wakeLock = null; } }
-
-// ═══════════════════════════════════
-//  TIMER
-// ═══════════════════════════════════
-let timerMode = 'timecap'; let timerInterval = null; let timerRunning = false; let timerStarted = false; let timerSeconds = 0; let timerTotalSeconds = 0; let roundCount = 0;
-let emomInterval = 60; let emomRounds = 10; let emomCurrentRound = 0; let emomRoundSeconds = 0;
-let tabataWork = 20; let tabataRest = 10; let tabataRounds = 8; let tabataCurrentRound = 0; let tabataPhase = 'work'; let tabataSeconds = 0;
-let capMinutes = 10; let capSeconds2 = 0;
-
-function setTimerMode(mode, btn) {
-  timerMode = mode; document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); resetTimer(); renderTimerSettings();
-}
-function renderTimerSettings() {
-  const s = document.getElementById('timer-settings'); document.getElementById('tabata-status').textContent = '';
-  if (timerMode === 'timecap' || timerMode === 'amrap') {
-    s.innerHTML = `${numRow('MIN', capMinutes, 'capMinutes', 0, 99)}${numRow('SEC', capSeconds2, 'capSeconds2', 0, 59)}`;
-    document.getElementById('timer-sub-label').textContent = timerMode==='timecap' ? 'COUNTDOWN · STOPS AT ZERO' : 'AS MANY ROUNDS AS POSSIBLE';
-  } else if (timerMode === 'fortime') {
-    s.innerHTML = `${numRow('CAP MIN', capMinutes, 'capMinutes', 0, 99)}${numRow('CAP SEC', capSeconds2, 'capSeconds2', 0, 59)}`;
-    document.getElementById('timer-sub-label').textContent = 'COUNT UP · TAP STOP WHEN DONE';
-  } else if (timerMode === 'emom') {
-    s.innerHTML = `${numRow('INTERVAL (sec)', emomInterval, 'emomInterval', 10, 300)}${numRow('ROUNDS', emomRounds, 'emomRounds', 1, 60)}`;
-    document.getElementById('timer-sub-label').textContent = 'EVERY MINUTE ON THE MINUTE';
-  } else if (timerMode === 'tabata') {
-    s.innerHTML = `${numRow('WORK (sec)', tabataWork, 'tabataWork', 5, 60)}${numRow('REST (sec)', tabataRest, 'tabataRest', 5, 60)}${numRow('ROUNDS', tabataRounds, 'tabataRounds', 1, 30)}`;
-    document.getElementById('timer-sub-label').textContent = 'WORK / REST';
-  }
-}
-function numRow(label, val, key, min, max) {
-  return `<div class="timer-row"><div class="timer-row-label">${label}</div><div class="num-input-group">
-    <button class="num-btn" onclick="adjustNum('${key}', -1, ${min}, ${max})">−</button><div class="num-val" id="num-${key}">${String(val).padStart(2,'0')}</div><button class="num-btn" onclick="adjustNum('${key}', 1, ${min}, ${max})">+</button>
-  </div></div>`;
-}
-function adjustNum(key, dir, min, max) {
-  const map = { capMinutes, capSeconds2, emomInterval, emomRounds, tabataWork, tabataRest, tabataRounds };
-  let val = map[key] + dir; if (val < min) val = min; if (val > max) val = max;
-  eval(`${key} = ${val}`);
-  document.getElementById('num-'+key).textContent = String(val).padStart(2,'0');
-}
-
-function toggleTimer() {
-  initAudio(); // Audio Context 시작
-  if (timerRunning) {
-    clearInterval(timerInterval); timerRunning = false; releaseWakeLock();
-    document.getElementById('start-btn').textContent = 'RESUME';
-  } else {
-    requestWakeLock(); // 화면 안꺼지게 유지
-    if (!timerStarted) { initTimerValues(); timerStarted = true; }
-    timerRunning = true; document.getElementById('start-btn').textContent = 'PAUSE';
-    if (timerMode === 'timecap' || timerMode === 'amrap') timerInterval = setInterval(tickCountdown, 1000);
-    else if (timerMode === 'fortime') timerInterval = setInterval(tickCountup, 1000);
-    else if (timerMode === 'emom') timerInterval = setInterval(tickEmom, 1000);
-    else if (timerMode === 'tabata') timerInterval = setInterval(tickTabata, 1000);
-  }
-}
-
-function initTimerValues() {
-  if (timerMode === 'timecap' || timerMode === 'amrap') {
-    timerSeconds = capMinutes * 60 + capSeconds2; timerTotalSeconds = timerSeconds; updateFace(timerSeconds);
-  } else if (timerMode === 'fortime') { timerSeconds = 0; timerTotalSeconds = capMinutes * 60 + capSeconds2; updateFace(0); } 
-  else if (timerMode === 'emom') { emomCurrentRound = 1; emomRoundSeconds = emomInterval; updateFace(emomRoundSeconds); document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`; } 
-  else if (timerMode === 'tabata') { tabataCurrentRound = 1; tabataPhase = 'work'; tabataSeconds = tabataWork; updateFace(tabataSeconds); setTabataStatus('WORK'); document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`; }
-}
-
-function tickCountdown() {
-  timerSeconds--; 
-  if(timerSeconds <= 3 && timerSeconds > 0) playBeep('low');
-  if (timerSeconds <= 0) { timerSeconds = 0; updateFace(0); endTimer('TIME!'); playBeep('high'); return; }
-  updateFace(timerSeconds);
-}
-function tickCountup() {
-  timerSeconds++; updateFace(timerSeconds);
-  if (timerTotalSeconds > 0 && timerSeconds >= timerTotalSeconds) { endTimer('CAP!'); playBeep('high'); }
-}
-function tickEmom() {
-  emomRoundSeconds--;
-  if(emomRoundSeconds <= 3 && emomRoundSeconds > 0) playBeep('low');
-  if (emomRoundSeconds <= 0) {
-    playBeep('high'); emomCurrentRound++;
-    if (emomCurrentRound > emomRounds) { endTimer('DONE!'); return; }
-    emomRoundSeconds = emomInterval; document.getElementById('timer-sub-label').textContent = `ROUND ${emomCurrentRound} / ${emomRounds}`;
-  }
-  updateFace(emomRoundSeconds);
-}
-function tickTabata() {
-  tabataSeconds--;
-  if(tabataSeconds <= 3 && tabataSeconds > 0) playBeep('low');
-  if (tabataSeconds <= 0) {
-    playBeep('high');
-    if (tabataPhase === 'work') { tabataPhase = 'rest'; tabataSeconds = tabataRest; setTabataStatus('REST'); } 
-    else {
-      tabataCurrentRound++;
-      if (tabataCurrentRound > tabataRounds) { endTimer('DONE!'); return; }
-      tabataPhase = 'work'; tabataSeconds = tabataWork; setTabataStatus('WORK');
-      document.getElementById('timer-sub-label').textContent = `ROUND ${tabataCurrentRound} / ${tabataRounds}`;
-      roundCount++; document.getElementById('round-display').textContent = roundCount;
-    }
-  }
-  updateFace(tabataSeconds);
-}
-
-function setTabataStatus(label) { const el = document.getElementById('tabata-status'); el.textContent = label; el.className = 'tabata-status ' + label.toLowerCase(); }
-function updateFace(secs) { document.getElementById('timer-face').textContent = `${String(Math.floor(secs / 60)).padStart(2,'0')}:${String(secs % 60).padStart(2,'0')}`; }
-function endTimer(msg) { clearInterval(timerInterval); timerRunning = false; timerStarted = false; releaseWakeLock(); document.getElementById('start-btn').textContent = 'START'; document.getElementById('timer-face').textContent = msg; timerSeconds = 0; }
-function resetTimer() { endTimer('00:00'); renderTimerSettings(); roundCount = 0; document.getElementById('round-display').textContent = 0; }
-function adjustRound(dir) { roundCount = Math.max(0, roundCount + dir); document.getElementById('round-display').textContent = roundCount; }
-
-// ═══════════════════════════════════
-//  PR
-// ═══════════════════════════════════
-let selectedPRType = null; let prFilter = 'all';
-
-function openPRModal() {
-  selectedPRType = null; document.getElementById('pr-exercise').value = ''; document.getElementById('pr-record').value = '';
-  document.getElementById('pr-date').value = new Date().toISOString().slice(0,10);
-  ['cf','run','lift'].forEach(t => document.getElementById('pr-type-'+t).className = 'type-btn');
-  document.getElementById('pr-modal').classList.add('open');
-}
-function selectPRType(type) {
-  selectedPRType = type;
-  document.getElementById('pr-type-cf').className = 'type-btn' + (type==='crossfit' ? ' active-cf' : '');
-  document.getElementById('pr-type-run').className = 'type-btn' + (type==='run' ? ' active-run' : '');
-  document.getElementById('pr-type-lift').className = 'type-btn' + (type==='lifting' ? ' active-lift' : '');
-}
-function addPR() {
-  const exercise = document.getElementById('pr-exercise').value.trim(); const date = document.getElementById('pr-date').value;
-  const record = document.getElementById('pr-record').value.trim(); const unit = document.getElementById('pr-unit').value;
-  if (!selectedPRType || !exercise || !date || !record) return;
-  state.prs.push({ type: selectedPRType, exercise, date, record, unit });
-  state.prs.sort((a,b) => b.date.localeCompare(a.date)); // 최신순 정렬 (자연스러운 히스토리 보기)
-  saveState(); closeModal('pr-modal'); renderPR(); renderCal(); 
-}
-function filterPR(type, btn) { prFilter = type; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderPR(); }
-function renderPR() {
-  const list = document.getElementById('pr-list'); const prs = prFilter === 'all' ? state.prs : state.prs.filter(p => p.type === prFilter);
-  if (prs.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:30px 0">NO PR RECORDS YET</div>'; return; }
-  list.innerHTML = '';
-  prs.forEach((pr, idx) => {
-    const card = document.createElement('div'); card.className = 'pr-card';
-    const realIdx = state.prs.indexOf(pr);
-    card.innerHTML = `
-      <div class="pr-card-left">
-        <div class="pr-exercise">${pr.exercise}</div>
-        <div class="pr-meta">
-          <div class="workout-type-badge ${pr.type==='crossfit'?'badge-cf':pr.type==='run'?'badge-run':'badge-lift'}" style="font-size:8px;padding:2px 6px">${pr.type==='crossfit'?'CF':pr.type==='run'?'RUN':'LIFT'}</div>
-          <div class="pr-date">${pr.date}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;">ROUNDS</div>
+        <div class="round-display" style="margin-top:0;gap:14px;">
+          <div class="round-btn" onclick="adjustRound(-1)">−</div>
+          <div style="text-align:center;">
+            <div class="round-count" id="round-count">0</div>
+          </div>
+          <div class="round-btn" onclick="adjustRound(1)">+</div>
         </div>
       </div>
-      <div class="pr-record-wrap"><span class="pr-record">${pr.record}</span><span class="pr-unit">${pr.unit || ''}</span></div>
-      <button class="delete-btn" onclick="deletePR(${realIdx})">✕</button>
-    `;
-    list.appendChild(card);
-  });
+
+      <div class="timer-config" id="timer-config">
+        <!-- dynamic config rows injected by JS -->
+      </div>
+
+      <div class="timer-controls">
+        <div class="timer-btn secondary" id="timer-reset-btn" onclick="resetTimer()">RESET</div>
+        <div class="timer-btn primary" id="timer-start-btn" onclick="startStopTimer()">START</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PR VIEW -->
+  <div id="view-pr" class="view">
+    <div class="pr-view">
+      <div class="section-header">
+        <div class="section-title">PERSONAL RECORD</div>
+        <div class="btn-add" onclick="openPRModal()">+ ADD PR</div>
+      </div>
+      <div class="pr-category-tabs">
+        <div class="cat-tab active" onclick="setPRFilter('all')">ALL</div>
+        <div class="cat-tab" onclick="setPRFilter('crossfit')">CROSSFIT</div>
+        <div class="cat-tab" onclick="setPRFilter('lifting')">LIFTING</div>
+        <div class="cat-tab" onclick="setPRFilter('run')">RUN</div>
+      </div>
+      <div class="pr-list" id="pr-list"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('calendar')" id="nav-calendar">
+      <div class="nav-icon">◫</div>
+      <div class="nav-label">LOG</div>
+    </div>
+    <div class="nav-item" onclick="switchView('timer')" id="nav-timer">
+      <div class="nav-icon">◷</div>
+      <div class="nav-label">TIMER</div>
+    </div>
+    <div class="nav-item" onclick="switchView('pr')" id="nav-pr">
+      <div class="nav-icon">◎</div>
+      <div class="nav-label">PR</div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT MODAL -->
+<div class="modal-overlay" id="workout-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ADD WORKOUT</div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select class="form-select" id="w-type">
+        <option value="crossfit">CrossFit</option>
+        <option value="run">Run</option>
+        <option value="lifting">Lifting</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Workout Name</label>
+      <input class="form-input" id="w-name" type="text" placeholder="e.g. Fran, 5K Run, Back Squat">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea class="form-textarea" id="w-note" placeholder="Rx, time cap, weights..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <div class="btn-cancel" onclick="closeWorkoutModal()">CANCEL</div>
+      <div class="btn-save" onclick="saveWorkout()">SAVE</div>
+    </div>
+  </div>
+</div>
+
+<!-- PR MODAL -->
+<div class="modal-overlay" id="pr-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ADD PR</div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="pr-cat">
+        <option value="crossfit">CrossFit</option>
+        <option value="lifting">Lifting</option>
+        <option value="run">Run</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Exercise</label>
+      <input class="form-input" id="pr-exercise" type="text" placeholder="e.g. Clean & Jerk, Fran, 1 Mile">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Value</label>
+        <input class="form-input" id="pr-value" type="text" placeholder="e.g. 120">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit</label>
+        <input class="form-input" id="pr-unit" type="text" placeholder="kg / min / km">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="pr-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <input class="form-input" id="pr-note" type="text" placeholder="Competition, gym, context...">
+    </div>
+    <div class="modal-actions">
+      <div class="btn-cancel" onclick="closePRModal()">CANCEL</div>
+      <div class="btn-save" onclick="savePR()">SAVE</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings-overlay" id="settings-overlay" onclick="toggleSettings()"></div>
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-title">SETTINGS</div>
+  <div class="settings-section">
+    <div class="settings-section-label">Display</div>
+    <div class="settings-item" onclick="toggleDark()">
+      <span class="settings-item-label">Dark Mode</span>
+      <div class="toggle" id="dark-toggle"></div>
+    </div>
+    <div class="settings-item" onclick="toggleWakeLock()">
+      <span class="settings-item-label">Screen Always On</span>
+      <div class="toggle" id="wake-toggle"></div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-label">Data</div>
+    <div class="settings-item" onclick="exportData()">
+      <span class="settings-item-label">Backup Data</span>
+      <span style="font-size:16px">↓</span>
+    </div>
+    <div class="settings-item" onclick="document.getElementById('import-file').click()">
+      <span class="settings-item-label">Restore Data</span>
+      <span style="font-size:16px">↑</span>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-label">About</div>
+    <div class="settings-item" style="cursor:default;">
+      <span class="settings-item-label">Version</span>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">1.0.0</span>
+    </div>
+  </div>
+</div>
+
+<div class="wakelock-indicator" id="wakelock-indicator"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+let appData = {
+  workouts: {},  // { 'YYYY-MM-DD': [{id, type, name, note, done}] }
+  prs: []        // [{id, cat, exercise, value, unit, date, note}]
+};
+
+function save() { localStorage.setItem('loot_data', JSON.stringify(appData)); }
+function load() {
+  const d = localStorage.getItem('loot_data');
+  if (d) { try { appData = JSON.parse(d); } catch(e) {} }
 }
-function deletePR(idx) { state.prs.splice(idx, 1); saveState(); renderPR(); renderCal(); }
 
-// ═══════════════════════════════════
-//  MODALS INIT
-// ═══════════════════════════════════
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); }); });
+// ── SPLASH ────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  load();
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('hide');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      document.getElementById('app').classList.add('active');
+      renderCalendar();
+      renderPRList();
+      renderTimerConfig();
+    }, 600);
+  }, 3200);
+});
 
-// INIT
-initCal(); renderTimerSettings(); renderPR();
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+let currentView = 'calendar';
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  document.getElementById('nav-' + v).classList.add('active');
+  currentView = v;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────
+const today = new Date();
+let calYear = today.getFullYear(), calMonth = today.getMonth();
+let selectedDate = toKey(today);
+
+function toKey(d) { return d.toISOString().slice(0, 10); }
+function changeMonth(dir) { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } else if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+
+const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-days');
+  grid.innerHTML = '';
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  const todayKey = toKey(today);
+  const prDates = new Set(appData.prs.map(p => p.date));
+
+  // prev month
+  for (let i = 0; i < first; i++) {
+    const d = prevDays - first + 1 + i;
+    const key = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    grid.appendChild(makeDay(d, key, true, todayKey, prDates));
+  }
+  for (let d = 1; d <= days; d++) {
+    const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    grid.appendChild(makeDay(d, key, false, todayKey, prDates));
+  }
+  // fill remaining
+  const total = first + days;
+  const rem = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= rem; d++) {
+    const key = `${calYear}-${String(calMonth+2).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    grid.appendChild(makeDay(d, key, true, todayKey, prDates));
+  }
+  renderDayPanel();
+}
+
+function makeDay(d, key, otherMonth, todayKey, prDates) {
+  const el = document.createElement('div');
+  el.className = 'cal-day' + (otherMonth ? ' other-month' : '') + (key === todayKey ? ' today' : '') + (key === selectedDate ? ' selected' : '');
+  const workouts = appData.workouts[key] || [];
+  const dots = workouts.map(w => `<div class="dot${w.done?' done':''}"></div>`).join('');
+  const prDot = prDates.has(key) ? '<div class="dot pr"></div>' : '';
+  el.innerHTML = `<div class="day-num">${d}</div><div class="day-dots">${dots}${prDot}</div>`;
+  el.onclick = () => { selectedDate = key; renderCalendar(); };
+  return el;
+}
+
+function renderDayPanel() {
+  const container = document.getElementById('day-panel-container');
+  const workouts = appData.workouts[selectedDate] || [];
+  const dateObj = new Date(selectedDate + 'T12:00:00');
+  const label = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+
+  let wHTML = workouts.length === 0
+    ? `<div class="empty"><div class="empty-icon">○</div><div class="empty-text">No workouts planned</div></div>`
+    : `<div class="workout-list">${workouts.map(w => `
+      <div class="workout-item">
+        <div class="workout-check${w.done?' done':''}" onclick="toggleWorkout('${selectedDate}','${w.id}')"></div>
+        <div class="workout-info">
+          <div class="workout-type">${w.type}</div>
+          <div class="workout-name">${w.name}</div>
+          ${w.note ? `<div class="workout-note">${w.note}</div>` : ''}
+        </div>
+        <div class="workout-del" onclick="deleteWorkout('${selectedDate}','${w.id}')">×</div>
+      </div>`).join('')}</div>`;
+
+  container.innerHTML = `
+    <div class="day-panel">
+      <div class="day-panel-header">
+        <div class="day-panel-title">${label}</div>
+        <div class="chip">${workouts.filter(w=>w.done).length}/${workouts.length}</div>
+      </div>
+      <div class="day-panel-body">
+        ${wHTML}
+        <button class="btn-add-workout" onclick="openWorkoutModal()">+ Add Workout</button>
+      </div>
+    </div>`;
+}
+
+function toggleWorkout(date, id) {
+  const ws = appData.workouts[date];
+  const w = ws.find(x => x.id === id);
+  if (w) w.done = !w.done;
+  save(); renderCalendar();
+}
+function deleteWorkout(date, id) {
+  appData.workouts[date] = (appData.workouts[date] || []).filter(x => x.id !== id);
+  if (!appData.workouts[date].length) delete appData.workouts[date];
+  save(); renderCalendar();
+}
+
+// ── WORKOUT MODAL ─────────────────────────────────────────────────────────
+function openWorkoutModal() {
+  document.getElementById('w-name').value = '';
+  document.getElementById('w-note').value = '';
+  document.getElementById('workout-modal').classList.add('open');
+}
+function closeWorkoutModal() { document.getElementById('workout-modal').classList.remove('open'); }
+function saveWorkout() {
+  const name = document.getElementById('w-name').value.trim();
+  if (!name) { document.getElementById('w-name').focus(); return; }
+  const w = { id: Date.now().toString(), type: document.getElementById('w-type').value, name, note: document.getElementById('w-note').value.trim(), done: false };
+  if (!appData.workouts[selectedDate]) appData.workouts[selectedDate] = [];
+  appData.workouts[selectedDate].push(w);
+  save(); closeWorkoutModal(); renderCalendar();
+}
+document.getElementById('workout-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeWorkoutModal(); });
+
+// ── PR ────────────────────────────────────────────────────────────────────
+let prFilter = 'all';
+const PR_ICONS = { crossfit: '🏋', lifting: '⚡', run: '🏃' };
+
+function setPRFilter(f) {
+  prFilter = f;
+  document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPRList();
+}
+
+function renderPRList() {
+  const list = document.getElementById('pr-list');
+  const prs = prFilter === 'all' ? appData.prs : appData.prs.filter(p => p.cat === prFilter);
+  if (!prs.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">No PRs recorded yet</div></div>`; return;
+  }
+  const sorted = [...prs].sort((a, b) => b.date.localeCompare(a.date));
+  list.innerHTML = sorted.map(p => `
+    <div class="pr-item">
+      <div class="pr-icon">${PR_ICONS[p.cat] || '•'}</div>
+      <div class="pr-info">
+        <div class="pr-exercise">${p.exercise}</div>
+        <div class="pr-meta">${p.date} · ${p.cat.toUpperCase()}${p.note ? ' · ' + p.note : ''}</div>
+      </div>
+      <div>
+        <div class="pr-value">${p.value}</div>
+        <div class="pr-unit">${p.unit}</div>
+      </div>
+      <div class="pr-del-btn" onclick="deletePR('${p.id}')">×</div>
+    </div>`).join('');
+}
+
+function openPRModal() {
+  document.getElementById('pr-exercise').value = '';
+  document.getElementById('pr-value').value = '';
+  document.getElementById('pr-unit').value = '';
+  document.getElementById('pr-note').value = '';
+  document.getElementById('pr-date').value = toKey(today);
+  document.getElementById('pr-modal').classList.add('open');
+}
+function closePRModal() { document.getElementById('pr-modal').classList.remove('open'); }
+function savePR() {
+  const exercise = document.getElementById('pr-exercise').value.trim();
+  const value = document.getElementById('pr-value').value.trim();
+  if (!exercise || !value) { return; }
+  const pr = {
+    id: Date.now().toString(),
+    cat: document.getElementById('pr-cat').value,
+    exercise, value,
+    unit: document.getElementById('pr-unit').value.trim(),
+    date: document.getElementById('pr-date').value,
+    note: document.getElementById('pr-note').value.trim()
+  };
+  appData.prs.push(pr);
+  save(); closePRModal(); renderPRList(); renderCalendar();
+}
+function deletePR(id) {
+  appData.prs = appData.prs.filter(p => p.id !== id);
+  save(); renderPRList(); renderCalendar();
+}
+document.getElementById('pr-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closePRModal(); });
+
+// ── TIMER ─────────────────────────────────────────────────────────────────
+let timerMode = 'fortime';
+let timerRunning = false, timerInterval = null;
+let timerSeconds = 0, timerElapsed = 0;
+let rounds = 0;
+let tabataPhase = 'work'; // work | rest
+let emomInterval = 0;
+let tabataWork = 20, tabataRest = 10, tabataRounds = 8;
+
+const TIMER_CONFIGS = {
+  fortime: { label: 'FOR TIME', fields: [] },
+  timecap: { label: 'TIME CAP', fields: [{ key: 'cap', label: 'Time Cap', type: 'time' }] },
+  amrap:   { label: 'AMRAP',    fields: [{ key: 'duration', label: 'Duration', type: 'time' }] },
+  emom:    { label: 'EMOM',     fields: [{ key: 'interval', label: 'Interval', type: 'time' }, { key: 'rounds', label: 'Rounds', type: 'number' }] },
+  tabata:  { label: 'TABATA',   fields: [
+    { key: 'work', label: 'Work', type: 'time' },
+    { key: 'rest', label: 'Rest', type: 'time' },
+    { key: 'rounds', label: 'Rounds', type: 'number' }
+  ]}
+};
+
+let timerConfig = {
+  cap: { m: 10, s: 0 },
+  duration: { m: 20, s: 0 },
+  interval: { m: 1, s: 0 },
+  work: { m: 0, s: 20 },
+  rest: { m: 0, s: 10 },
+  rounds: 8
+};
+
+function setTimerMode(m) {
+  timerMode = m;
+  document.querySelectorAll('.timer-mode-btn').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('timer-mode-label').textContent = TIMER_CONFIGS[m].label;
+  resetTimer();
+  renderTimerConfig();
+}
+
+function renderTimerConfig() {
+  const cfg = TIMER_CONFIGS[timerMode];
+  const container = document.getElementById('timer-config');
+  if (!cfg.fields.length) { container.innerHTML = '<div style="text-align:center;font-family:\'DM Mono\',monospace;font-size:12px;color:var(--text3);padding:8px 0;letter-spacing:0.06em;">COUNT UP · NO LIMIT</div>'; return; }
+  container.innerHTML = cfg.fields.map(f => {
+    if (f.type === 'time') {
+      const val = timerConfig[f.key];
+      return `<div class="config-row">
+        <div class="config-label">${f.label}</div>
+        <div class="config-inputs">
+          <input class="time-input" type="number" min="0" max="99" value="${String(val.m).padStart(2,'0')}" oninput="updateConfig('${f.key}','m',this.value)">
+          <div class="config-sep">:</div>
+          <input class="time-input" type="number" min="0" max="59" value="${String(val.s).padStart(2,'0')}" oninput="updateConfig('${f.key}','s',this.value)">
+        </div>
+      </div>`;
+    } else {
+      return `<div class="config-row">
+        <div class="config-label">${f.label}</div>
+        <div class="config-inputs">
+          <input class="time-input" type="number" min="1" max="99" value="${timerConfig[f.key]}" oninput="updateConfigNum('${f.key}',this.value)" style="width:64px;">
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function updateConfig(key, part, val) {
+  const n = parseInt(val) || 0;
+  timerConfig[key][part] = Math.max(0, Math.min(part === 's' ? 59 : 99, n));
+  if (!timerRunning) resetTimer();
+}
+function updateConfigNum(key, val) {
+  timerConfig[key] = Math.max(1, parseInt(val) || 1);
+  if (!timerRunning) resetTimer();
+}
+
+function fmtTime(s) {
+  const m = Math.floor(Math.abs(s) / 60), sec = Math.abs(s) % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function getInitialSeconds() {
+  const cfg = timerConfig;
+  switch (timerMode) {
+    case 'fortime': return 0;
+    case 'timecap': return cfg.cap.m * 60 + cfg.cap.s;
+    case 'amrap':   return cfg.duration.m * 60 + cfg.duration.s;
+    case 'emom':    return cfg.interval.m * 60 + cfg.interval.s;
+    case 'tabata':  return cfg.work.m * 60 + cfg.work.s;
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning = false;
+  timerElapsed = 0; rounds = 0; tabataPhase = 'work';
+  timerSeconds = getInitialSeconds();
+  const disp = document.getElementById('timer-display');
+  disp.className = 'timer-time';
+  disp.textContent = (timerMode === 'fortime') ? '00:00' : fmtTime(timerSeconds);
+  document.getElementById('timer-sub').textContent = timerMode === 'tabata' ? 'WORK' : '';
+  document.getElementById('round-count').textContent = '0';
+  document.getElementById('timer-start-btn').textContent = 'START';
+}
+
+function startStopTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning = false;
+    document.getElementById('timer-start-btn').textContent = 'START';
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-start-btn').textContent = 'PAUSE';
+    playBeep('start');
+    timerInterval = setInterval(tick, 1000);
+  }
+}
+
+function tick() {
+  timerElapsed++;
+  const disp = document.getElementById('timer-display');
+
+  if (timerMode === 'fortime') {
+    disp.textContent = fmtTime(timerElapsed);
+
+  } else if (timerMode === 'timecap') {
+    timerSeconds--;
+    disp.textContent = fmtTime(timerSeconds);
+    if (timerSeconds <= 10) disp.className = 'timer-time warning';
+    if (timerSeconds <= 0) { clearInterval(timerInterval); timerRunning = false; playBeep('end'); document.getElementById('timer-start-btn').textContent = 'START'; }
+
+  } else if (timerMode === 'amrap') {
+    timerSeconds--;
+    disp.textContent = fmtTime(timerSeconds);
+    if (timerSeconds <= 10) disp.className = 'timer-time warning';
+    if (timerSeconds <= 0) { clearInterval(timerInterval); timerRunning = false; playBeep('end'); document.getElementById('timer-start-btn').textContent = 'START'; }
+
+  } else if (timerMode === 'emom') {
+    timerSeconds--;
+    disp.textContent = fmtTime(timerSeconds);
+    const total = timerConfig.interval.m * 60 + timerConfig.interval.s;
+    const maxRounds = timerConfig.rounds;
+    if (timerSeconds <= 0) {
+      rounds++;
+      document.getElementById('round-count').textContent = rounds;
+      if (rounds >= maxRounds) {
+        clearInterval(timerInterval); timerRunning = false;
+        playBeep('end'); document.getElementById('timer-start-btn').textContent = 'START';
+      } else {
+        timerSeconds = total;
+        playBeep('round');
+      }
+    }
+
+  } else if (timerMode === 'tabata') {
+    timerSeconds--;
+    disp.textContent = fmtTime(timerSeconds);
+    const maxR = timerConfig.rounds;
+    if (timerSeconds <= 3 && timerSeconds > 0) playBeep('beep');
+    if (timerSeconds <= 0) {
+      if (tabataPhase === 'work') {
+        tabataPhase = 'rest';
+        timerSeconds = timerConfig.rest.m * 60 + timerConfig.rest.s;
+        document.getElementById('timer-sub').textContent = 'REST';
+        playBeep('round');
+      } else {
+        rounds++;
+        document.getElementById('round-count').textContent = rounds;
+        if (rounds >= maxR) {
+          clearInterval(timerInterval); timerRunning = false;
+          document.getElementById('timer-sub').textContent = 'DONE';
+          playBeep('end'); document.getElementById('timer-start-btn').textContent = 'START';
+        } else {
+          tabataPhase = 'work';
+          timerSeconds = timerConfig.work.m * 60 + timerConfig.work.s;
+          document.getElementById('timer-sub').textContent = 'WORK';
+          playBeep('round');
+        }
+      }
+    }
+    disp.className = timerSeconds <= 5 ? 'timer-time warning' : 'timer-time';
+  }
+}
+
+function adjustRound(dir) {
+  rounds = Math.max(0, rounds + dir);
+  document.getElementById('round-count').textContent = rounds;
+  if (dir > 0) playBeep('beep');
+}
+
+// ── AUDIO ─────────────────────────────────────────────────────────────────
+let audioCtx;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playBeep(type) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+
+    const presets = {
+      start: { freq: 880, dur: 0.15, type: 'sine', vol: 0.4 },
+      end:   { freq: [440, 330], dur: 0.3, type: 'sine', vol: 0.5 },
+      round: { freq: 660, dur: 0.12, type: 'square', vol: 0.3 },
+      beep:  { freq: 550, dur: 0.08, type: 'sine', vol: 0.2 }
+    };
+    const p = presets[type] || presets.beep;
+    const now = ctx.currentTime;
+
+    if (Array.isArray(p.freq)) {
+      p.freq.forEach((f, i) => {
+        const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.frequency.value = f; o2.type = 'sine';
+        g2.gain.setValueAtTime(p.vol, now + i * p.dur);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + i * p.dur + p.dur);
+        o2.start(now + i * p.dur); o2.stop(now + i * p.dur + p.dur);
+      });
+    } else {
+      osc.frequency.value = p.freq; osc.type = p.type;
+      gain.gain.setValueAtTime(p.vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + p.dur);
+      osc.start(now); osc.stop(now + p.dur);
+    }
+  } catch(e) {}
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────────────────
+let isDark = localStorage.getItem('loot_dark') === '1';
+function applyDark() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+  const t = document.getElementById('dark-toggle');
+  if (t) { t.classList.toggle('on', isDark); }
+}
+function toggleDark() {
+  isDark = !isDark;
+  localStorage.setItem('loot_dark', isDark ? '1' : '0');
+  applyDark();
+}
+applyDark();
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────
+function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
+  const panel = document.getElementById('settings-panel');
+  const open = panel.classList.toggle('open');
+  overlay.classList.toggle('open', open);
+}
+
+// ── WAKE LOCK ─────────────────────────────────────────────────────────────
+let wakeLock = null, wakeEnabled = localStorage.getItem('loot_wake') === '1';
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      document.getElementById('wakelock-indicator').classList.add('active');
+    } catch(e) { wakeEnabled = false; }
+  }
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  document.getElementById('wakelock-indicator').classList.remove('active');
+}
+function toggleWakeLock() {
+  wakeEnabled = !wakeEnabled;
+  localStorage.setItem('loot_wake', wakeEnabled ? '1' : '0');
+  document.getElementById('wake-toggle').classList.toggle('on', wakeEnabled);
+  if (wakeEnabled) requestWakeLock(); else releaseWakeLock();
+}
+if (wakeEnabled) { requestWakeLock(); document.getElementById('wake-toggle').classList.add('on'); }
+document.addEventListener('visibilitychange', () => { if (wakeEnabled && document.visibilityState === 'visible') requestWakeLock(); });
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `loot_backup_${toKey(new Date())}.json`;
+  a.click();
+}
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.workouts !== undefined && data.prs !== undefined) {
+        appData = data; save(); renderCalendar(); renderPRList();
+        alert('Data restored successfully.');
+      } else { alert('Invalid backup file.'); }
+    } catch(err) { alert('Failed to parse backup file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
 </script>
 </body>
 </html>
